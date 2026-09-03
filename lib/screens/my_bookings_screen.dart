@@ -32,8 +32,7 @@ class _MyBookingsScreenState
   ];
 
   String get userId {
-    return widget.user['uid']?.toString() ??
-        widget.user['userId']?.toString() ??
+    return widget.user['id']?.toString() ??
         '';
   }
 
@@ -187,6 +186,201 @@ class _MyBookingsScreenState
         Colors.red,
       );
     }
+  }
+
+  void _showBookingDetails(
+      Map<String, dynamic> booking,
+      String bookingId,
+      String fertilizerName,
+      String quantity,
+      String bookingDate,
+      String slotTime,
+      String paymentMethod,
+      String paymentStatus,
+      double totalAmount,
+      String status,
+      ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(
+                Icons.receipt_long,
+                color: Colors.green,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Booking Details',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                _detailDialogRow(
+                  'Product Name',
+                  fertilizerName,
+                  Icons.eco_outlined,
+                ),
+
+                _detailDialogRow(
+                  'Quantity',
+                  quantity,
+                  Icons.shopping_bag_outlined,
+                ),
+
+                if (bookingDate.isNotEmpty)
+                  _detailDialogRow(
+                    'Booking Date',
+                    bookingDate,
+                    Icons.calendar_today_outlined,
+                  ),
+
+                if (slotTime.isNotEmpty)
+                  _detailDialogRow(
+                    'Time',
+                    slotTime,
+                    Icons.access_time_outlined,
+                  ),
+
+                _detailDialogRow(
+                  'Payment Method',
+                  paymentMethod,
+                  Icons.payment_outlined,
+                ),
+
+                _detailDialogRow(
+                  'Payment Status',
+                  paymentStatus.isNotEmpty
+                      ? paymentStatus
+                      : 'Not Available',
+                  Icons.verified_outlined,
+                ),
+
+                _detailDialogRow(
+                  'Total Amount',
+                  totalAmount > 0
+                      ? '₹${totalAmount.toStringAsFixed(2)}'
+                      : 'Not Available',
+                  Icons.currency_rupee,
+                ),
+
+                _detailDialogRow(
+                  'Booking ID',
+                  bookingId,
+                  Icons.confirmation_number_outlined,
+                ),
+
+                const SizedBox(height: 8),
+
+                const Text(
+                  'Current Status',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _statusColor(status)
+                        .withOpacity(0.10),
+                    borderRadius:
+                    BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _statusIcon(status),
+                        color: _statusColor(status),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            color: _statusColor(status),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _detailDialogRow(
+      String label,
+      String value,
+      IconData icon,
+      ) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        bottom: 14,
+      ),
+      child: Row(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showMessage(
@@ -438,7 +632,7 @@ class _MyBookingsScreenState
     final fertilizerName = _getValue(
       booking,
       [
-        'fertilizerName',
+        'fertilizer',
         'productName',
         'name',
       ],
@@ -632,15 +826,50 @@ class _MyBookingsScreenState
                 borderRadius:
                     BorderRadius.circular(10),
               ),
-              child: Text(
-                'Booking ID: $bookingId',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight:
-                      FontWeight.w600,
+              // child: Text(
+              //   // 'Booking ID: $bookingId',
+              //   style: const TextStyle(
+              //     fontSize: 12,
+              //     fontWeight:
+              //         FontWeight.w600,
+              //   ),
+              // ),
+            ),
+            const SizedBox(height: 14),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.green,
+                  side: const BorderSide(
+                    color: Colors.green,
+                  ),
+                ),
+                onPressed: () {
+                  _showBookingDetails(
+                    booking,
+                    bookingId,
+                    fertilizerName,
+                    quantity,
+                    bookingDate,
+                    slotTime,
+                    paymentMethod,
+                    paymentStatus,
+                    totalAmount,
+                    status,
+                  );
+                },
+                icon: const Icon(
+                  Icons.visibility_outlined,
+                ),
+                label: const Text(
+                  'View Details',
                 ),
               ),
             ),
+
+
 
             if (status.toLowerCase() ==
                 'pending') ...[

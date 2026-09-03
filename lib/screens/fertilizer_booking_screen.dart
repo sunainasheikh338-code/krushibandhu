@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../services/payment_service.dart';
 import 'order_status_screen.dart';
+import '../services/database_service.dart';
 
 class FertilizerBookingScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -83,43 +84,44 @@ class _FertilizerBookingScreenState
   // FERTILIZERS
   // ============================================================
 
-  final List<Map<String, dynamic>> fertilizers = [
-    {
-      "name": "Urea",
-      "price": 266,
-      "stock": 500,
-      "icon": Icons.grass,
-      "color": Colors.green,
-    },
-    {
-      "name": "DAP",
-      "price": 1350,
-      "stock": 250,
-      "icon": Icons.agriculture,
-      "color": Colors.orange,
-    },
-    {
-      "name": "NPK 10:26:26",
-      "price": 1475,
-      "stock": 150,
-      "icon": Icons.eco,
-      "color": Colors.blue,
-    },
-    {
-      "name": "Potash",
-      "price": 950,
-      "stock": 120,
-      "icon": Icons.spa,
-      "color": Colors.purple,
-    },
-    {
-      "name": "Organic Compost",
-      "price": 450,
-      "stock": 300,
-      "icon": Icons.energy_savings_leaf,
-      "color": Colors.brown,
-    },
-  ];
+
+  // final List<Map<String, dynamic>> fertilizers = [
+  //   {
+  //     "name": "Urea",
+  //     "price": 266,
+  //     "stock": 500,
+  //     "icon": Icons.grass,
+  //     "color": Colors.green,
+  //   },
+  //   {
+  //     "name": "DAP",
+  //     "price": 1350,
+  //     "stock": 250,
+  //     "icon": Icons.agriculture,
+  //     "color": Colors.orange,
+  //   },
+  //   {
+  //     "name": "NPK 10:26:26",
+  //     "price": 1475,
+  //     "stock": 150,
+  //     "icon": Icons.eco,
+  //     "color": Colors.blue,
+  //   },
+  //   {
+  //     "name": "Potash",
+  //     "price": 950,
+  //     "stock": 120,
+  //     "icon": Icons.spa,
+  //     "color": Colors.purple,
+  //   },
+  //   {
+  //     "name": "Organic Compost",
+  //     "price": 450,
+  //     "stock": 300,
+  //     "icon": Icons.energy_savings_leaf,
+  //     "color": Colors.brown,
+  //   },
+  // ];
 
   // ============================================================
   // INIT
@@ -129,21 +131,60 @@ class _FertilizerBookingScreenState
   void initState() {
     super.initState();
 
-    phoneController.text = loggedInMobile;
+    phoneController.text =
+        widget.user["mobile"]?.toString() ?? widget.user["phone"]?.toString() ??
+            "";
 
-    if (widget.user["name"] != null) {
-      farmerNameController.text =
-          widget.user["name"].toString();
+    farmerNameController.text = widget.user["name"]?.toString() ?? "";
+
+    villageController.text = widget.user["village"]?.toString() ?? "";
+
+    acresController.text = widget.user["land"]?.toString() ?? "";
+
+    _loadFarmerDetails();
+  }
+
+  Future<void> _loadFarmerDetails() async {
+    if (loggedInMobile.isEmpty) {
+      return;
     }
 
-    if (widget.user["village"] != null) {
-      villageController.text =
-          widget.user["village"].toString();
-    }
+    final user = await DatabaseService.getUserByMobile(
+      loggedInMobile,
+    );
 
-    if (widget.user["land"] != null) {
-      acresController.text =
-          widget.user["land"].toString();
+    if (!mounted) return;
+
+    if (user != null) {
+      setState(() {
+        if (user["name"] != null && user["name"]
+            .toString()
+            .trim()
+            .isNotEmpty) {
+          farmerNameController.text = user["name"].toString();
+        }
+
+        if (user["village"] != null && user["village"]
+            .toString()
+            .trim()
+            .isNotEmpty) {
+          villageController.text = user["village"].toString();
+        }
+
+        if (user["land"] != null && user["land"]
+            .toString()
+            .trim()
+            .isNotEmpty) {
+          acresController.text = user["land"].toString();
+        }
+
+        if (user["mobile"] != null && user["mobile"]
+            .toString()
+            .trim()
+            .isNotEmpty) {
+          phoneController.text = user["mobile"].toString();
+        }
+      });
     }
   }
 
@@ -161,7 +202,7 @@ class _FertilizerBookingScreenState
         int.tryParse(quantityController.text) ?? 1;
 
     final double price =
-        (selectedFertilizer!["price"] as num).toDouble();
+    (selectedFertilizer!["price"] as num).toDouble();
 
     totalPrice = quantity * price;
   }
@@ -383,40 +424,136 @@ class _FertilizerBookingScreenState
 
               const SizedBox(height: 15),
 
-              GridView.builder(
-                shrinkWrap: true,
-                physics:
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: firestore
+                    .collection("fertilizers")
+                    .where("active", isEqualTo: true)
+                    .snapshots(),
+
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(30),
+                        child: CircularProgressIndicator(
+                          color: Colors.green,
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        "Unable to load fertilizers.\n${snapshot.error}",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.red,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final documents = snapshot.data?.docs ?? [];
+
+                  if (documents.isEmpty) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(25),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(
+                            Icons.eco_outlined,
+                            size: 55,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "No fertilizers available.",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Please check again later.",
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics:
                     const NeverScrollableScrollPhysics(),
 
-                itemCount: fertilizers.length,
+                    itemCount: documents.length,
 
-                gridDelegate:
+                    gridDelegate:
                     const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.95,
-                ),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.95,
+                    ),
 
-                itemBuilder: (context, index) {
-                  final item = fertilizers[index];
+                    itemBuilder: (context, index) {
+                      final document =
+                      documents[index];
 
-                  final bool selected =
-                      selectedFertilizer == item;
+                      final data = document.data();
 
-                  return InkWell(
-                    borderRadius:
-                        BorderRadius.circular(18),
+                      final String name =
+                          data["name"]?.toString() ?? "Fertilizer";
 
-                    onTap: isLoading
-                        ? null
-                        : () {
-                            setState(() {
-                              selectedFertilizer =
-                                  item;
-                              calculatePrice();
-                            });
-                          },
+                      final double price =
+                      data["price"] is num
+                          ? (data["price"] as num).toDouble()
+                          : double.tryParse(
+                        data["price"]?.toString() ?? "",
+                      ) ??
+                          0;
+
+                      final int stock = data["stock"] is num
+                          ? (data["stock"] as num).toInt()
+                          : int.tryParse(data["stock"]?.toString() ?? "",) ?? 0;
+
+                      final bool selected = selectedFertilizer?["id"] ==
+                          document.id;
+
+                      return InkWell(borderRadius:
+                      BorderRadius.circular(18),
+
+                        onTap: isLoading || stock <= 0 ? null : () {
+                          setState(() {
+                            selectedFertilizer = {
+                              "id": document.id,
+                              "name": name,
+                              "price": price,
+                              "stock": stock,
+                            };
+
+                            calculatePrice();
+                          });
+                        },
 
                     child: AnimatedContainer(
                       duration:
@@ -424,10 +561,12 @@ class _FertilizerBookingScreenState
                         milliseconds: 250,
                       ),
 
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? Colors.green.shade100
-                            : Colors.white,
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? Colors.green.shade100
+                                : stock <= 0
+                                ? Colors.grey.shade100
+                                : Colors.white,
 
                         borderRadius:
                             BorderRadius.circular(18),
@@ -458,58 +597,178 @@ class _FertilizerBookingScreenState
                           mainAxisAlignment:
                               MainAxisAlignment.center,
 
-                          children: [
-                            Icon(
-                              item["icon"] as IconData,
-                              size: 45,
-                              color:
-                                  item["color"]
-                                      as Color,
-                            ),
+                              children: [
+                                Icon(
+                                  Icons.eco,
+                                  size: 45,
+                                  color: stock <= 0
+                                      ? Colors.grey
+                                      : Colors.green,
+                                ),
 
                             const SizedBox(height: 10),
 
-                            Text(
-                              item["name"].toString(),
-                              textAlign:
+                                Text(
+                                  name,
+                                  textAlign:
                                   TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight:
+                                  style: const TextStyle(
+                                    fontWeight:
                                     FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                                    fontSize: 16,
+                                  ),
+                                ),
 
                             const SizedBox(height: 8),
 
-                            Text(
-                              "₹${item["price"]}",
-                              style:
+                                Text(
+                                  "₹${price.toStringAsFixed(0)}",
+                                  style:
                                   const TextStyle(
-                                color: Colors.green,
-                                fontWeight:
+                                    color: Colors.green,
+                                    fontWeight:
                                     FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
+                                    fontSize: 18,
+                                  ),
+                                ),
 
-                            const SizedBox(height: 4),
+                                const SizedBox(height: 4),
 
-                            Text(
-                              "Stock : ${item["stock"]}",
-                              style:
-                                  const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
+                                Text(
+                                  stock <= 0 ? "Out of Stock"
+                                      : stock <= 10 ? "🟠 Low Stock • $stock bags"
+                                      : "🟢 Available • $stock bags",
+                                  style: TextStyle(
+                                    color: stock > 0
+                                        ? Colors.grey
+                                        : Colors.red,
+                                    fontSize: 12,
+                                    fontWeight:
+                                    stock > 0
+                                        ? FontWeight.normal
+                                        : FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),
+
+              // ==========================================================
+// SELECTED FERTILIZER SUMMARY
+// ==========================================================
+
+              if (selectedFertilizer != null) ...[
+                const SizedBox(height: 20),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.green.shade200,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Selected Fertilizer",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.eco,
+                              color: Colors.green,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Text(
+                              selectedFertilizer!["name"].toString(),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "₹${selectedFertilizer!["price"]} × "
+                                "${quantityController.text} bags",
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+
+                          Text(
+                            "₹${totalPrice.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const Divider(height: 20),
+
+                      Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Total Amount",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          Text(
+                            "₹${totalPrice.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 25),
 
@@ -559,11 +818,13 @@ class _FertilizerBookingScreenState
                     return "Invalid Quantity";
                   }
 
-                  if (selectedFertilizer != null &&
-                      quantity >
-                          (selectedFertilizer!["stock"]
-                              as int)) {
-                    return "Quantity exceeds available stock";
+                  if (selectedFertilizer != null) {
+                    final int availableStock =
+                    (selectedFertilizer!["stock"] as num).toInt();
+
+                    if (quantity > availableStock) {
+                      return "Quantity exceeds available stock";
+                    }
                   }
 
                   return null;
@@ -599,12 +860,12 @@ class _FertilizerBookingScreenState
                 onChanged: isLoading
                     ? null
                     : (value) {
-                        if (value == null) return;
+                  if (value == null) return;
 
-                        setState(() {
-                          bookingType = value;
-                        });
-                      },
+                  setState(() {
+                    bookingType = value;
+                  });
+                },
               ),
 
               const SizedBox(height: 25),
@@ -627,7 +888,7 @@ class _FertilizerBookingScreenState
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius:
-                      BorderRadius.circular(15),
+                  BorderRadius.circular(15),
                   border: Border.all(
                     color: Colors.grey.shade300,
                   ),
@@ -644,7 +905,7 @@ class _FertilizerBookingScreenState
                         "Cash on Delivery",
                         style: TextStyle(
                           fontWeight:
-                              FontWeight.bold,
+                          FontWeight.bold,
                         ),
                       ),
 
@@ -1199,6 +1460,9 @@ class _FertilizerBookingScreenState
 
     calculatePrice();
 
+    final String fertilizerId =
+    selectedFertilizer!["id"].toString();
+
     // ----------------------------------------------------------
     // START LOADING
     // ----------------------------------------------------------
@@ -1333,6 +1597,40 @@ class _FertilizerBookingScreenState
               PaymentStatus.paid) {
         orderStatus = "Pending";
       }
+
+      await firestore.runTransaction((transaction) async {
+        final fertilizerRef = firestore
+            .collection("fertilizers")
+            .doc(fertilizerId);
+
+        final fertilizerSnapshot =
+        await transaction.get(fertilizerRef);
+
+        if (!fertilizerSnapshot.exists) {
+          throw Exception(
+            "Fertilizer is no longer available.",
+          );
+        }
+
+        final data = fertilizerSnapshot.data();
+
+        final int currentStock =
+            (data?["stock"] as num?)?.toInt() ?? 0;
+
+        if (currentStock < quantity) {
+          throw Exception(
+            "Only $currentStock bags are available.",
+          );
+        }
+
+        transaction.update(
+          fertilizerRef,
+          {
+            "stock": currentStock - quantity,
+            "updatedAt": FieldValue.serverTimestamp(),
+          },
+        );
+      });
 
       // --------------------------------------------------------
       // SAVE BOOKING TO FIRESTORE
@@ -1471,9 +1769,7 @@ class _FertilizerBookingScreenState
   // PAYMENT STATUS TEXT
   // ============================================================
 
-  String _paymentStatusText(
-    PaymentStatus status,
-  ) {
+  String _paymentStatusText(PaymentStatus status,) {
     switch (status) {
       case PaymentStatus.pending:
         return "Pending";
@@ -1493,9 +1789,7 @@ class _FertilizerBookingScreenState
   // PAYMENT RESULT DIALOG
   // ============================================================
 
-  Future<void> _showPaymentResultDialog(
-    PaymentResult result,
-  ) async {
+  Future<void> _showPaymentResultDialog(PaymentResult result,) async {
     if (!mounted) return;
 
     final bool success = result.success;
@@ -1629,14 +1923,14 @@ class _FertilizerBookingScreenState
 
                 Text(
                   "Farmer Mobile : "
-                  "$loggedInMobile",
+                      "$loggedInMobile",
                 ),
 
                 const SizedBox(height: 4),
 
                 Text(
                   "Fertilizer : "
-                  "${selectedFertilizer!["name"]}",
+                      "${selectedFertilizer!["name"]}",
                 ),
 
                 const SizedBox(height: 4),
@@ -1649,14 +1943,16 @@ class _FertilizerBookingScreenState
 
                 Text(
                   "Amount : "
-                  "₹${totalPrice.toStringAsFixed(0)}",
+                      "₹${totalPrice.toStringAsFixed(0)}",
                 ),
 
                 const SizedBox(height: 8),
 
                 Text(
                   "Payment : "
-                  "${paymentResult.method == PaymentMethod.cashOnDelivery ? "Cash on Delivery" : "Online Payment"}",
+                      "${paymentResult.method == PaymentMethod.cashOnDelivery
+                      ? "Cash on Delivery"
+                      : "Online Payment"}",
                   textAlign:
                       TextAlign.center,
 
@@ -1671,7 +1967,7 @@ class _FertilizerBookingScreenState
 
                 Text(
                   "Payment Status : "
-                  "${_paymentStatusText(paymentResult.status)}",
+                      "${_paymentStatusText(paymentResult.status)}",
 
                   style: TextStyle(
                     color:
@@ -1691,7 +1987,7 @@ class _FertilizerBookingScreenState
                     .isNotEmpty)
                   Text(
                     "Payment ID : "
-                    "${paymentResult.paymentId}",
+                        "${paymentResult.paymentId}",
                     textAlign:
                         TextAlign.center,
 
@@ -1776,10 +2072,8 @@ class _FertilizerBookingScreenState
   // MESSAGE
   // ============================================================
 
-  void _showMessage(
-    String message,
-    Color color,
-  ) {
+  void _showMessage(String message,
+      Color color,) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context)
@@ -1796,14 +2090,8 @@ class _FertilizerBookingScreenState
   // ============================================================
 
   void clearForm() {
-    farmerNameController.clear();
+    phoneController.text = loggedInMobile;
 
-    phoneController.text =
-        loggedInMobile;
-
-    villageController.clear();
-
-    acresController.clear();
 
     quantityController.text = "1";
 

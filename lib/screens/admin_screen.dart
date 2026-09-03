@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'farmers_management_screen.dart';
+import 'admin_fertilizer_management_screen.dart';
+import 'login_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -13,6 +15,66 @@ class AdminScreen extends StatelessWidget {
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         centerTitle: true,
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "Logout",
+            onPressed: () async {
+              final shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (dialogContext) {
+                  return AlertDialog(
+                    title: const Text("Logout"),
+                    content: const Text(
+                      "Are you sure you want to logout?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(
+                            dialogContext,
+                            false,
+                          );
+                        },
+                        child: const Text("Cancel"),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(
+                            dialogContext,
+                            true,
+                          );
+                        },
+                        child: const Text("Logout"),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (shouldLogout != true) {
+                return;
+              }
+
+              if (!context.mounted) {
+                return;
+              }
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+                    (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -219,6 +281,22 @@ class AdminScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) =>
                                 const FertilizerOrdersAdminScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // FERTILIZER MANAGEMENT
+                    _buildCard(
+                      context,
+                      Icons.eco,
+                      "Fertilizer Management",
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                            const AdminFertilizerManagementScreen(),
                           ),
                         );
                       },
