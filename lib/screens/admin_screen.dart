@@ -325,12 +325,12 @@ class AdminScreen extends StatelessWidget {
                     ),
 
                     // MARKETPLACE
-                    _buildCard(
-                      context,
-                      Icons.store,
-                      "Marketplace",
-                      () {},
-                    ),
+                    // _buildCard(
+                    //   context,
+                    //   Icons.store,
+                    //   "Marketplace",
+                    //   () {},
+                    // ),
 
                     // REPORTS
                     _buildCard(
@@ -899,21 +899,110 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                     Navigator.pop(dialogContext);
 
                     try {
-                      await FirebaseFirestore.instance
+                      final bookingRef = FirebaseFirestore
+                          .instance
                           .collection('tractor_bookings')
-                          .doc(documentId)
-                          .update({
+                          .doc(documentId);
+
+                      final bookingDoc =
+                      await bookingRef.get();
+
+                      if (!bookingDoc.exists) {
+                        throw Exception(
+                          'Booking not found.',
+                        );
+                      }
+
+                      final bookingData =
+                      bookingDoc.data();
+
+                      if (bookingData == null) {
+                        throw Exception(
+                          'Booking data is empty.',
+                        );
+                      }
+
+                      final tractorId =
+                          bookingData['tractorId']
+                              ?.toString() ??
+                              '';
+
+                      if (tractorId.isEmpty) {
+                        throw Exception(
+                          'Tractor ID not found in booking.',
+                        );
+                      }
+
+                      final tractorRef = FirebaseFirestore
+                          .instance
+                          .collection('tractor_listings')
+                          .doc(tractorId);
+
+                      final bookingUpdate =
+                      <String, dynamic>{
                         'status': status,
                         'updatedAt':
+                        FieldValue.serverTimestamp(),
+                      };
+
+                      if (status == 'Confirmed') {
+                        bookingUpdate['confirmedAt'] =
+                            FieldValue.serverTimestamp();
+                      }
+
+                      if (status == 'In Progress') {
+                        bookingUpdate['startedAt'] =
+                            FieldValue.serverTimestamp();
+                      }
+
+                      if (status == 'Completed') {
+                        bookingUpdate['completedAt'] =
+                            FieldValue.serverTimestamp();
+                      }
+
+                      if (status == 'Cancelled') {
+                        bookingUpdate['cancelledAt'] =
+                            FieldValue.serverTimestamp();
+                      }
+
+                      await bookingRef.update(
+                        bookingUpdate,
+                      );
+
+                      if (status == 'Cancelled' ||
+                          status == 'Completed') {
+
+                        await tractorRef.set(
+                          {
+                            'isAvailable': true,
+                            'currentBookingId':
+                            FieldValue.delete(),
+                            'updatedAt':
                             FieldValue.serverTimestamp(),
-                      });
+                          },
+                          SetOptions(merge: true),
+                        );
+                      } else {
+                        await tractorRef.set(
+                          {
+                            'isAvailable': false,
+                            'currentBookingId': documentId,
+                            'updatedAt':
+                            FieldValue.serverTimestamp(),
+                          },
+                          SetOptions(merge: true),
+                        );
+                      }
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context)
                             .showSnackBar(
                           SnackBar(
                             content: Text(
-                              "Booking status updated to $status",
+                              status == 'Cancelled' ||
+                                  status == 'Completed'
+                                  ? 'Booking status updated to $status. Tractor is now available.'
+                                  : 'Booking status updated to $status. Tractor remains unavailable.',
                             ),
                             backgroundColor: Colors.green,
                           ),

@@ -32,6 +32,7 @@ class _MyTractorBookingsScreenState
   String get farmerId {
     return widget.user['uid']?.toString() ??
         widget.user['userId']?.toString() ??
+        widget.user['id']?.toString() ??
         '';
   }
 
@@ -156,18 +157,60 @@ class _MyTractorBookingsScreenState
     }
 
     try {
-      await _firestore
+      final bookingRef = _firestore
           .collection('tractor_bookings')
-          .doc(documentId)
-          .update({
+          .doc(documentId);
+
+      final bookingDoc = await bookingRef.get();
+
+      if (!bookingDoc.exists) {
+        throw Exception('Booking not found.');
+      }
+
+      final bookingData = bookingDoc.data();
+
+      if (bookingData == null) {
+        throw Exception('Booking data is empty.');
+      }
+
+      // Get tractor ID from booking
+      final tractorId =
+          bookingData['tractorId']?.toString() ?? '';
+
+      if (tractorId.isEmpty) {
+        throw Exception(
+          'Tractor ID not found in booking.',
+        );
+      }
+
+      // Cancel booking
+      await bookingRef.update({
         'status': 'Cancelled',
-        'updatedAt': FieldValue.serverTimestamp(),
+        'cancelledAt':
+        FieldValue.serverTimestamp(),
+        'updatedAt':
+        FieldValue.serverTimestamp(),
       });
+
+      // Make tractor available again
+      await _firestore
+          .collection('tractor_listings')
+          .doc(tractorId)
+          .set(
+        {
+          'isAvailable': true,
+          'currentBookingId':
+          FieldValue.delete(),
+          'updatedAt':
+          FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
 
       if (!mounted) return;
 
       _showMessage(
-        'Booking cancelled successfully.',
+        'Booking cancelled successfully. Tractor is now available.',
         Colors.green,
       );
     } catch (e) {
