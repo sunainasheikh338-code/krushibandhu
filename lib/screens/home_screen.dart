@@ -17,7 +17,7 @@ import 'multilanguage_screen.dart';
 import 'my_bookings_screen.dart';
 import 'my_tractor_bookings_screen.dart';
 import 'profile_screen.dart';
-import 'qr_verification_screen.dart';
+// import 'qr_verification_screen.dart';
 import 'tractor_rental_screen.dart';
 import 'voice_assistant_screen.dart';
 
@@ -49,15 +49,17 @@ class HomeScreen extends StatelessWidget {
           user: user,
         ),
       },
-      {
-        'title': lang['qr_verification'] ?? 'QR Verification',
-        'icon': Icons.qr_code_scanner,
-        'screen': const QRVerificationScreen(),
-      },
+      // {
+      //   'title': lang['qr_verification'] ?? 'QR Verification',
+      //   'icon': Icons.qr_code_scanner,
+      //   'screen': const QRVerificationScreen(),
+      // },
       {
         'title': lang['tractor_rental'] ?? 'Tractor Rental',
         'icon': Icons.agriculture,
-        'screen': const TractorRentalScreen(),
+        'screen': TractorRentalScreen(
+          user: user,
+        ),
       },
       {
         'title': lang['leftover_fertilizer'] ?? 'Leftover Fertilizer',
@@ -74,49 +76,49 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.notifications_active,
         'screen': const CropReminderScreen(),
       },
-      {
-        'title': lang['language'] ?? 'Language',
-        'icon': Icons.language,
-        'screen': const MultiLanguageScreen(),
-      },
-      {
-        'title': lang['voice_assistant'] ?? 'Voice Assistant',
-        'icon': Icons.mic,
-        'screen': VoiceAssistantScreen(
-          user: user,
-        ),
-      },
+      // {
+      //   'title': lang['language'] ?? 'Language',
+      //   'icon': Icons.language,
+      //   'screen': const MultiLanguageScreen(),
+      // },
+      // {
+      //   'title': lang['voice_assistant'] ?? 'Voice Assistant',
+      //   'icon': Icons.mic,
+      //   'screen': VoiceAssistantScreen(
+      //     user: user,
+      //   ),
+      // },
       {
         'title': lang['marketplace'] ?? 'Marketplace',
         'icon': Icons.store,
         'screen': const FarmerMarketplaceScreen(),
       },
-      {
-        'title': lang['credit_score'] ?? 'Credit Score',
-        'icon': Icons.credit_score,
-        'screen': const FarmerCreditScoreScreen(),
-      },
-      {
-        'title': lang['profile'] ?? 'Profile',
-        'icon': Icons.person,
-        'screen': ProfileScreen(
-          user: user,
-        ),
-      },
-      {
-        'title': 'My Bookings',
-        'icon': Icons.receipt_long,
-        'screen': MyBookingsScreen(
-          user: user,
-        ),
-      },
-      {
-        'title': 'My Tractor Bookings',
-        'icon': Icons.agriculture_outlined,
-        'screen': MyTractorBookingsScreen(
-          user: user,
-        ),
-      },
+      // {
+      //   'title': lang['credit_score'] ?? 'Credit Score',
+      //   'icon': Icons.credit_score,
+      //   'screen': const FarmerCreditScoreScreen(),
+      // },
+      // {
+      //   'title': lang['profile'] ?? 'Profile',
+      //   'icon': Icons.person,
+      //   'screen': ProfileScreen(
+      //     user: user,
+      //   ),
+      // },
+      // {
+      //   'title': 'My Bookings',
+      //   'icon': Icons.receipt_long,
+      //   'screen': MyBookingsScreen(
+      //     user: user,
+      //   ),
+      // },
+      // {
+      //   'title': 'My Tractor Bookings',
+      //   'icon': Icons.agriculture_outlined,
+      //   'screen': MyTractorBookingsScreen(
+      //     user: user,
+      //   ),
+      // },
     ];
 
     if (role == 'admin') {

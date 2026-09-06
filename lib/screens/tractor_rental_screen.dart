@@ -1,8 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'tractor_booking_screen.dart';
 
 class TractorRentalScreen extends StatefulWidget {
-  const TractorRentalScreen({super.key});
+  final Map<String, dynamic> user;
+
+  const TractorRentalScreen({
+    super.key,
+    required this.user,
+  });
 
   @override
   State<TractorRentalScreen> createState() =>
@@ -658,10 +664,16 @@ class _TractorRentalScreenState
               child: ElevatedButton.icon(
                 onPressed: isAvailable
                     ? () {
-                        _showComingSoon(
-                          'Tractor booking',
-                        );
-                      }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TractorBookingScreen(
+                        tractor: tractor,
+                        user: widget.user,
+                      ),
+                    ),
+                  );
+                }
                     : null,
 
                 style:

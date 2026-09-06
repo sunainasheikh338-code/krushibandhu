@@ -41,21 +41,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCVR9n3B9MpEfDGbGxNHP4-6RIdLuJcjHM',
-    appId: '1:764037151303:web:d8196902a979a15e124f62',
-    messagingSenderId: '764037151303',
-    projectId: 'krushibandhu-8840a',
-    authDomain: 'krushibandhu-8840a.firebaseapp.com',
-    storageBucket: 'krushibandhu-8840a.firebasestorage.app',
-    measurementId: 'G-MQFSYSE2JM',
+    apiKey: 'AIzaSyDD0MbCKHffFgd-2aHooPTKkTUHdu-2VTw',
+    appId: '1:922498123965:web:0122501d9c64c81ae4fd4',
+    messagingSenderId: '922498123965',
+    projectId: 'krushibandu-new',
+    authDomain: 'krushibandu-new.firebaseapp.com',
+    storageBucket: 'krushibandu-new.firebasestorage.app',
+    measurementId: 'G-TL6H5PXP',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCjrWpzmPBgZ1H0OHs7TzcP6KDVQhMR3Oc',
-    appId: '1:764037151303:android:d8183ec1812cd1b6124f62',
-    messagingSenderId: '764037151303',
-    projectId: 'krushibandhu-8840a',
-    storageBucket: 'krushibandhu-8840a.firebasestorage.app',
+    apiKey: 'AIzaSyBysrDabSgBW46wd9w2FJLkHKc5BHYwzWQ',
+    appId: '1:922498123965:android:3330fd8d8438a3dbae4fd4',
+    messagingSenderId: '922498123965',
+    projectId: 'krushibandu-new',
+    storageBucket: 'krushibandu-new.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

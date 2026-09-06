@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'farmers_management_screen.dart';
 import 'admin_fertilizer_management_screen.dart';
 import 'login_screen.dart';
+import 'management_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -287,16 +288,29 @@ class AdminScreen extends StatelessWidget {
                     ),
 
                     // FERTILIZER MANAGEMENT
+                    // _buildCard(
+                    //   context,
+                    //   Icons.eco,
+                    //   "Fertilizer Management",
+                    //       () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) =>
+                    //         const AdminFertilizerManagementScreen(),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     _buildCard(
                       context,
-                      Icons.eco,
-                      "Fertilizer Management",
+                      Icons.settings,
+                      "Management",
                           () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                            const AdminFertilizerManagementScreen(),
+                            builder: (_) => const ManagementScreen(),
                           ),
                         );
                       },

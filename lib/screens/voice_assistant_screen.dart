@@ -52,7 +52,9 @@ if (available) {
           context,
           MaterialPageRoute(
             builder: (_) =>
-                const TractorRentalScreen(),
+                TractorRentalScreen(
+                  user: widget.user,
+                ),
           ),
         );
       }

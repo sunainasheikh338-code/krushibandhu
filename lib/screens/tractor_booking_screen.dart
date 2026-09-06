@@ -32,6 +32,9 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
   bool withLabour = false;
   String paymentMethod = 'Cash on Delivery';
 
+  Map<String, dynamic>? selectedEquipment;
+  String? selectedEquipmentId;
+
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
@@ -151,8 +154,20 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
     return (duration / 8) * labourCharge;
   }
 
+  double get equipmentPrice {
+    if (selectedEquipment == null) return 0;
+
+    final price = selectedEquipment!['price'];
+
+    if (price is num) {
+      return price.toDouble();
+    }
+
+    return double.tryParse(price?.toString() ?? '') ?? 0;
+  }
+
   double get totalAmount {
-    return tractorAmount + totalLabourCharge;
+    return tractorAmount + totalLabourCharge + equipmentPrice;
   }
 
   String _generateBookingId() {
@@ -249,7 +264,9 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
     try {
       final bookingId = _generateBookingId();
 
-      final PaymentResult paymentResult;
+      // final PaymentResult paymentResult;
+
+      PaymentResult? paymentResult;
 
       if (paymentMethod == 'Cash on Delivery') {
         paymentResult =
@@ -271,6 +288,21 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
           farmerName: farmerName,
           farmerPhone: farmerMobile,
         );
+      }
+
+      if (paymentResult == null) {
+        if (!mounted) return;
+
+        setState(() {
+          isBooking = false;
+        });
+
+        _showMessage(
+          'Payment was not completed.',
+          Colors.orange,
+        );
+
+        return;
       }
 
       if (!paymentResult.success) {
@@ -305,6 +337,10 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       final bookingData = <String, dynamic>{
         'bookingId': bookingId,
         'status': 'Pending',
+
+        'equipmentId': selectedEquipment?['documentId'],
+        'equipmentName': selectedEquipment?['name'],
+        'equipmentPrice': equipmentPrice,
 
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -362,6 +398,15 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
           .collection('tractor_bookings')
           .doc(bookingId)
           .set(bookingData);
+
+      await _firestore
+          .collection('tractor_listings')
+          .doc(tractorId)
+          .update({
+        'isAvailable': false,
+        'currentBookingId': bookingId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
       try {
         await _firestore
@@ -596,6 +641,125 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
             ),
 
             const SizedBox(height: 22),
+
+            const SizedBox(height: 22),
+
+            const Text(
+              'Equipment / Attachment',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('equipment')
+                  .where('isAvailable', isEqualTo: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return const Text(
+                    'Unable to load equipment.',
+                    style: TextStyle(color: Colors.red),
+                  );
+                }
+
+                final equipmentList = snapshot.data?.docs
+                    .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return {
+                    ...data,
+                    'documentId': doc.id,
+                  };
+                })
+                    .where(
+                      (equipment) =>
+                  equipment['compatibleTractorType'] ==
+                      tractorType,
+                )
+                    .toList() ??
+                    [];
+
+                if (equipmentList.isEmpty) {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.grey),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'No compatible equipment available.',
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return DropdownButtonFormField<String>(
+                  value: selectedEquipmentId,
+                  decoration: const InputDecoration(
+                    labelText: 'Select Equipment',
+                    prefixIcon: Icon(Icons.construction),
+                    border: OutlineInputBorder(),
+                  ),
+                  hint: const Text('No equipment selected'),
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: '',
+                      child: Text('No Equipment'),
+                    ),
+                    ...equipmentList.map(
+                          (equipment) {
+                        return DropdownMenuItem<String>(
+                          value: equipment['documentId'].toString(),
+                          child: Text(
+                            equipment['name']?.toString() ??
+                                'Equipment',
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  onChanged: isBooking
+                      ? null
+                      : (value) {
+                    setState(() {
+                      selectedEquipmentId = value;
+
+                      if (value == null || value.isEmpty) {
+                        selectedEquipment = null;
+                      } else {
+                        selectedEquipment = equipmentList.firstWhere(
+                              (equipment) =>
+                          equipment['documentId'].toString() ==
+                              value,
+                        );
+                      }
+                    });
+                  },
+                );
+              },
+            ),
 
             const Text(
               'Rental Option',
@@ -1033,6 +1197,11 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
             _priceRow(
               'Labour',
               '₹${totalLabourCharge.toStringAsFixed(2)}',
+            ),
+          if (selectedEquipment != null)
+            _priceRow(
+              selectedEquipment!['name']?.toString() ?? 'Equipment',
+              '₹${equipmentPrice.toStringAsFixed(2)}',
             ),
           const Divider(),
           _priceRow(

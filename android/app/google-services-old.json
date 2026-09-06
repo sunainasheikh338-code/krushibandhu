@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "922498123965",
-    "project_id": "krushibandu-new",
-    "storage_bucket": "krushibandu-new.firebasestorage.app"
+    "project_number": "764037151303",
+    "project_id": "krushibandhu-8840a",
+    "storage_bucket": "krushibandhu-8840a.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:922498123965:android:3330fd8d8438a3dbae4fd4",
+        "mobilesdk_app_id": "1:764037151303:android:d8183ec1812cd1b6124f62",
         "android_client_info": {
           "package_name": "com.example.krushibandhu"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBysrDabSgBW46wd9w2FJLkHKc5BHYwzWQ"
+          "current_key": "AIzaSyCjrWpzmPBgZ1H0OHs7TzcP6KDVQhMR3Oc"
         }
       ],
       "services": {

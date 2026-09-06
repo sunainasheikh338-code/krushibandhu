@@ -81,14 +81,41 @@ class _AdminTractorBookingsScreenState
   }
 
   Future<void> _updateBookingStatus(
-    String documentId,
-    String status,
-  ) async {
+      String documentId,
+      String status,
+      ) async {
     try {
+      // Get the booking first so we know which tractor is linked to it.
+      print('🔥 UPDATE STATUS CALLED: $status');
+      // print('🚜 UPDATING TRACTOR: $tractorId');
+      final bookingDoc = await _firestore
+          .collection('tractor_bookings')
+          .doc(documentId)
+          .get();
+
+      if (!bookingDoc.exists) {
+        throw Exception('Booking not found.');
+      }
+
+      final bookingData =
+      bookingDoc.data() as Map<String, dynamic>;
+
+      final tractorId =
+          bookingData['tractorId']?.toString() ?? '';
+
+      print('🚜 TRACTOR ID: $tractorId');
+
+      debugPrint('STATUS: $status');
+      debugPrint('TRACTOR ID: $tractorId');
+      debugPrint('FREEING TRACTOR: $tractorId');
+
+      if (tractorId.isEmpty) {
+        throw Exception('Tractor ID not found in booking.');
+      }
+
       final updateData = <String, dynamic>{
         'status': status,
-        'updatedAt':
-            FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       };
 
       if (status == 'Confirmed') {
@@ -106,10 +133,36 @@ class _AdminTractorBookingsScreenState
             FieldValue.serverTimestamp();
       }
 
+      // Update booking status.
       await _firestore
           .collection('tractor_bookings')
           .doc(documentId)
           .update(updateData);
+
+      debugPrint('STATUS: $status');
+      debugPrint('TRACTOR ID: $tractorId');
+
+      if (status == 'Completed' || status == 'Cancelled') {
+        debugPrint('FREEING TRACTOR: $tractorId');
+
+        await _firestore
+            .collection('tractor_listings')
+            .doc(tractorId)
+            .update({
+          'isAvailable': true,
+          'currentBookingId': FieldValue.delete(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await _firestore
+            .collection('tractor_listings')
+            .doc(tractorId)
+            .update({
+          'isAvailable': false,
+          'currentBookingId': documentId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       if (!mounted) return;
 

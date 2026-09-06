@@ -11,8 +11,7 @@ class AdminFertilizerManagementScreen extends StatefulWidget {
 
 class _AdminFertilizerManagementScreenState
     extends State<AdminFertilizerManagementScreen> {
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // ============================================================
   // ADD / EDIT FERTILIZER
@@ -45,9 +44,7 @@ class _AdminFertilizerManagementScreenState
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text(
-                isEditing
-                    ? 'Edit Fertilizer'
-                    : 'Add Fertilizer',
+                isEditing ? 'Edit Fertilizer' : 'Add Fertilizer',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -79,8 +76,7 @@ class _AdminFertilizerManagementScreenState
 
                     TextField(
                       controller: priceController,
-                      keyboardType:
-                      const TextInputType.numberWithOptions(
+                      keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       decoration: const InputDecoration(
@@ -154,8 +150,7 @@ class _AdminFertilizerManagementScreenState
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () async {
-                    final name =
-                    nameController.text.trim();
+                    final name = nameController.text.trim();
 
                     final price = double.tryParse(
                       priceController.text.trim(),
@@ -268,8 +263,7 @@ class _AdminFertilizerManagementScreenState
       String documentId,
       String name,
       ) async {
-    final bool? confirm =
-    await showDialog<bool>(
+    final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -379,24 +373,7 @@ class _AdminFertilizerManagementScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-      const Color(0xFFF5F7FA),
-
-      // ==========================================================
-      // APP BAR
-      // ==========================================================
-
-      appBar: AppBar(
-        title: const Text(
-          'Fertilizer Management',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: const Color(0xFFF5F7FA),
 
       // ==========================================================
       // ADD BUTTON
