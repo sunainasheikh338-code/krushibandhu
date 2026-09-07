@@ -17,6 +17,7 @@ import 'multilanguage_screen.dart';
 import 'my_bookings_screen.dart';
 import 'my_tractor_bookings_screen.dart';
 import 'profile_screen.dart';
+
 // import 'qr_verification_screen.dart';
 import 'tractor_rental_screen.dart';
 import 'voice_assistant_screen.dart';
@@ -24,30 +25,23 @@ import 'voice_assistant_screen.dart';
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
 
-  const HomeScreen({
-    super.key,
-    required this.user,
-  });
+  const HomeScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
     final lang =
-        AppTranslations.translations[
-            Provider.of<LanguageProvider>(context)
-                .locale
-                .languageCode] ??
-            AppTranslations.translations['en']!;
+        AppTranslations.translations[Provider.of<LanguageProvider>(
+          context,
+        ).locale.languageCode] ??
+        AppTranslations.translations['en']!;
 
-    final String role =
-        user['role']?.toString().toLowerCase() ?? 'farmer';
+    final String role = user['role']?.toString().toLowerCase() ?? 'farmer';
 
     final List<Map<String, dynamic>> modules = [
       {
         'title': lang['fertilizer_booking'] ?? 'Fertilizer Booking',
         'icon': Icons.shopping_bag,
-        'screen': FertilizerBookingScreen(
-          user: user,
-        ),
+        'screen': FertilizerBookingScreen(user: user),
       },
       // {
       //   'title': lang['qr_verification'] ?? 'QR Verification',
@@ -57,14 +51,12 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['tractor_rental'] ?? 'Tractor Rental',
         'icon': Icons.agriculture,
-        'screen': TractorRentalScreen(
-          user: user,
-        ),
+        'screen': TractorRentalScreen(user: user),
       },
       {
         'title': lang['leftover_fertilizer'] ?? 'Leftover Fertilizer',
         'icon': Icons.inventory_2,
-        'screen': const LeftoverFertilizerSellingScreen(),
+        'screen': LeftoverFertilizerSellingScreen(user: user),
       },
       {
         'title': lang['labour_hiring'] ?? 'Labour Hiring',
@@ -122,13 +114,11 @@ class HomeScreen extends StatelessWidget {
     ];
 
     if (role == 'admin') {
-      modules.add(
-        {
-          'title': lang['admin'] ?? 'Admin',
-          'icon': Icons.admin_panel_settings,
-          'screen': const AdminScreen(),
-        },
-      );
+      modules.add({
+        'title': lang['admin'] ?? 'Admin',
+        'icon': Icons.admin_panel_settings,
+        'screen': const AdminScreen(),
+      });
     }
 
     return Scaffold(
@@ -144,9 +134,7 @@ class HomeScreen extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: Colors.green,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
 
       drawer: Drawer(
@@ -154,79 +142,48 @@ class HomeScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.green,
-              ),
+              decoration: const BoxDecoration(color: Colors.green),
               accountName: Text(
                 user['name']?.toString() ?? 'Farmer',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              accountEmail: Text(
-                user['mobile']?.toString() ?? '',
-              ),
+              accountEmail: Text(user['mobile']?.toString() ?? ''),
               currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person,
-                  color: Colors.green,
-                  size: 40,
-                ),
+                child: Icon(Icons.person, color: Colors.green, size: 40),
               ),
             ),
 
             ListTile(
-              leading: const Icon(
-                Icons.home,
-                color: Colors.green,
-              ),
-              title: Text(
-                lang['home'] ?? 'Home',
-              ),
+              leading: const Icon(Icons.home, color: Colors.green),
+              title: Text(lang['home'] ?? 'Home'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
 
             ListTile(
-              leading: const Icon(
-                Icons.support_agent,
-                color: Colors.green,
-              ),
-              title: Text(
-                lang['ai_assistant'] ?? 'AI Assistant',
-              ),
+              leading: const Icon(Icons.support_agent, color: Colors.green),
+              title: Text(lang['ai_assistant'] ?? 'AI Assistant'),
               onTap: () {
                 Navigator.pop(context);
 
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const AIAssistantScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const AIAssistantScreen()),
                 );
               },
             ),
 
             ListTile(
-              leading: const Icon(
-                Icons.person,
-                color: Colors.green,
-              ),
-              title: Text(
-                lang['profile'] ?? 'Profile',
-              ),
+              leading: const Icon(Icons.person, color: Colors.green),
+              title: Text(lang['profile'] ?? 'Profile'),
               onTap: () {
                 Navigator.pop(context);
 
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfileScreen(
-                      user: user,
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (_) => ProfileScreen(user: user)),
                 );
               },
             ),
@@ -234,15 +191,10 @@ class HomeScreen extends StatelessWidget {
             const Divider(),
 
             ListTile(
-              leading: const Icon(
-                Icons.receipt_long,
-                color: Colors.green,
-              ),
+              leading: const Icon(Icons.receipt_long, color: Colors.green),
               title: const Text(
                 'My Bookings',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -250,24 +202,17 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => MyBookingsScreen(
-                      user: user,
-                    ),
+                    builder: (_) => MyBookingsScreen(user: user),
                   ),
                 );
               },
             ),
 
             ListTile(
-              leading: const Icon(
-                Icons.agriculture,
-                color: Colors.green,
-              ),
+              leading: const Icon(Icons.agriculture, color: Colors.green),
               title: const Text(
                 'My Tractor Bookings',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -275,9 +220,7 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => MyTractorBookingsScreen(
-                      user: user,
-                    ),
+                    builder: (_) => MyTractorBookingsScreen(user: user),
                   ),
                 );
               },
@@ -286,13 +229,8 @@ class HomeScreen extends StatelessWidget {
             const Divider(),
 
             ListTile(
-              leading: const Icon(
-                Icons.language,
-                color: Colors.green,
-              ),
-              title: Text(
-                lang['language'] ?? 'Language',
-              ),
+              leading: const Icon(Icons.language, color: Colors.green),
+              title: Text(lang['language'] ?? 'Language'),
               onTap: () {
                 Navigator.pop(context);
 
@@ -313,18 +251,14 @@ class HomeScreen extends StatelessWidget {
                 ),
                 title: Text(
                   lang['admin'] ?? 'Admin',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
                   Navigator.pop(context);
 
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const AdminScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const AdminScreen()),
                   );
                 },
               ),
@@ -332,19 +266,12 @@ class HomeScreen extends StatelessWidget {
             const Divider(),
 
             ListTile(
-              leading: const Icon(
-                Icons.logout,
-                color: Colors.red,
-              ),
-              title: Text(
-                lang['logout'] ?? 'Logout',
-              ),
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: Text(lang['logout'] ?? 'Logout'),
               onTap: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
                 );
               },
@@ -357,8 +284,7 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: GridView.builder(
           itemCount: modules.length,
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 15,
             mainAxisSpacing: 15,

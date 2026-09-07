@@ -16,6 +16,8 @@ class ManagementScreen extends StatelessWidget {
           foregroundColor: Colors.white,
           centerTitle: true,
           bottom: const TabBar(
+            labelColor: Colors.white,
+            dividerColor: Colors.white,
             tabs: [
               Tab(
                 icon: Icon(Icons.eco),

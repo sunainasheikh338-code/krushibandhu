@@ -25,6 +25,7 @@ class _MyTractorBookingsScreenState
     'All',
     'Pending',
     'Confirmed',
+    'In Progress',
     'Completed',
     'Cancelled',
   ];
@@ -66,6 +67,9 @@ class _MyTractorBookingsScreenState
       case 'confirmed':
         return Colors.blue;
 
+      case 'in progress':
+        return Colors.deepPurple;
+
       case 'completed':
         return Colors.green;
 
@@ -82,6 +86,9 @@ class _MyTractorBookingsScreenState
     switch (status.toLowerCase()) {
       case 'confirmed':
         return Icons.check_circle_outline;
+
+      case 'in progress':
+        return Icons.play_circle_outline;
 
       case 'completed':
         return Icons.task_alt;

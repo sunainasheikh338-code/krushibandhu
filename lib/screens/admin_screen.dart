@@ -558,6 +558,15 @@ class TractorBookingsAdminScreen extends StatelessWidget {
               final rentalOption =
                   data['rentalOption']?.toString() ?? "Tractor Only";
 
+              final equipmentName =
+                  data['equipmentName']?.toString() ?? "No Equipment";
+
+              final equipmentPrice = _toDouble(data['equipmentPrice']);
+
+              final labourIncluded = data['labourIncluded'] == true;
+
+              final labourAmount = _toDouble(data['labourAmount']);
+
               final bookingDate =
                   data['bookingDate']?.toString() ?? "Not specified";
 
@@ -632,6 +641,12 @@ class TractorBookingsAdminScreen extends StatelessWidget {
 
                       const Divider(height: 25),
 
+                      // _detailRow(
+                      //   Icons.confirmation_number,
+                      //   "Booking ID",
+                      //   bookingId,
+                      // ),
+
                       _detailRow(
                         Icons.person,
                         "Farmer",
@@ -667,6 +682,39 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                         "Rental",
                         rentalOption,
                       ),
+
+                      if (equipmentName != "No Equipment") ...[
+                        _detailRow(
+                          Icons.construction,
+                          "Equipment",
+                          equipmentName,
+                        ),
+
+                        _detailRow(
+                          Icons.currency_rupee,
+                          "Equipment Amount",
+                          "₹${equipmentPrice.toStringAsFixed(2)}",
+                        ),
+                      ],
+
+                      if (labourIncluded) ...[
+                        _detailRow(
+                          Icons.engineering,
+                          "Labour",
+                          "Yes",
+                        ),
+
+                        _detailRow(
+                          Icons.currency_rupee,
+                          "Labour Amount",
+                          "₹${labourAmount.toStringAsFixed(2)}",
+                        ),
+                      ] else
+                        _detailRow(
+                          Icons.engineering,
+                          "Labour",
+                          "No",
+                        ),
 
                       _detailRow(
                         Icons.calendar_today,
@@ -706,45 +754,81 @@ class TractorBookingsAdminScreen extends StatelessWidget {
 
                       const SizedBox(height: 15),
 
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              _statusColor(status).withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: _statusColor(status),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.info,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            "Booking Status:",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
                             ),
-
-                            const SizedBox(width: 10),
-
-                            const Text(
-                              "Booking Status: ",
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _statusColor(status).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              status,
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
+                                color: _statusColor(status),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-
-                            Expanded(
-                              child: Text(
-                                status,
-                                style: TextStyle(
-                                  color: _statusColor(status),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+
+                      // Container(
+                      //   width: double.infinity,
+                      //   padding: const EdgeInsets.symmetric(
+                      //     horizontal: 14,
+                      //     vertical: 12,
+                      //   ),
+                      //   decoration: BoxDecoration(
+                      //     color:
+                      //         _statusColor(status).withOpacity(0.12),
+                      //     borderRadius: BorderRadius.circular(12),
+                      //   ),
+                      //   child: Row(
+                      //     children: [
+                      //       Icon(
+                      //         Icons.info_outline,
+                      //         color: _statusColor(status),
+                      //       ),
+                      //
+                      //       const SizedBox(width: 10),
+                      //
+                      //       // const Text(
+                      //       //   "Booking Status: ",
+                      //       //   style: TextStyle(
+                      //       //     fontWeight: FontWeight.w600,
+                      //       //   ),
+                      //       // ),
+                      //
+                      //
+                      //
+                      //       Expanded(
+                      //         child: Text(
+                      //           status,
+                      //           style: TextStyle(
+                      //             color: _statusColor(status),
+                      //             fontWeight: FontWeight.bold,
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
 
                       const SizedBox(height: 15),
 
