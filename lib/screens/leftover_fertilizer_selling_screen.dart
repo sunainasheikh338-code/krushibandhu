@@ -522,12 +522,7 @@ class _LeftoverFertilizerSellingScreenState
     int quantity,
   ) async {
     try {
-      final buyerId =
-          (widget.user["uid"] ??
-                  widget.user["userId"] ??
-                  widget.user["id"] ??
-                  "")
-              .toString();
+      final buyerId = (widget.user["id"] ?? "").toString();
 
       final buyerName = (widget.user["name"] ?? "").toString();
 
@@ -1254,20 +1249,12 @@ class _LeftoverFertilizerSellingScreenState
       );
     }
 
-    if (status == "Ready for Pickup" || status == "Out for Delivery") {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () {
-            _updateSellerOrderStatus(orderId, "Completed");
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text("Complete"),
-        ),
-      );
+    if (status == "Ready for Pickup") {
+      return const SizedBox.shrink();
+    }
+
+    if (status == "Out for Delivery") {
+      return const SizedBox.shrink();
     }
 
     return const SizedBox.shrink();
@@ -2053,12 +2040,7 @@ class _LeftoverFertilizerSellingScreenState
       final listingData = <String, dynamic>{
         "listingId": listingId,
 
-        "sellerId":
-            (widget.user["uid"] ??
-                    widget.user["userId"] ??
-                    widget.user["id"] ??
-                    "")
-                .toString(),
+        "sellerId": (widget.user["id"] ?? "").toString(),
 
         "sellerName": farmerName,
 

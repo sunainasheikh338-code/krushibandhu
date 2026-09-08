@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../services/database_service.dart';
+// import '../services/database_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -77,9 +78,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(name)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Full Name should contain letters and spaces only",
-          ),
+          content: Text("Full Name should contain letters and spaces only"),
           backgroundColor: Colors.red,
         ),
       );
@@ -93,9 +92,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'^[0-9]{10}$').hasMatch(mobile)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Enter a valid 10-digit mobile number",
-          ),
+          content: Text("Enter a valid 10-digit mobile number"),
           backgroundColor: Colors.red,
         ),
       );
@@ -109,9 +106,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'^[6-9]').hasMatch(mobile)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Mobile number must start with 6, 7, 8 or 9",
-          ),
+          content: Text("Mobile number must start with 6, 7, 8 or 9"),
           backgroundColor: Colors.red,
         ),
       );
@@ -125,9 +120,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(village)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Village should contain letters and spaces only",
-          ),
+          content: Text("Village should contain letters and spaces only"),
           backgroundColor: Colors.red,
         ),
       );
@@ -141,9 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'^[0-9]+(\.[0-9]+)?$').hasMatch(land)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Land Area should contain numbers only",
-          ),
+          content: Text("Land Area should contain numbers only"),
           backgroundColor: Colors.red,
         ),
       );
@@ -157,9 +148,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(crop)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Main Crop should contain letters and spaces only",
-          ),
+          content: Text("Main Crop should contain letters and spaces only"),
           backgroundColor: Colors.red,
         ),
       );
@@ -173,9 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (password.length != 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must be exactly 8 characters",
-          ),
+          content: Text("Password must be exactly 8 characters"),
           backgroundColor: Colors.red,
         ),
       );
@@ -189,9 +176,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'[A-Z]').hasMatch(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must contain at least one uppercase letter",
-          ),
+          content: Text("Password must contain at least one uppercase letter"),
           backgroundColor: Colors.red,
         ),
       );
@@ -205,9 +190,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'[a-z]').hasMatch(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must contain at least one lowercase letter",
-          ),
+          content: Text("Password must contain at least one lowercase letter"),
           backgroundColor: Colors.red,
         ),
       );
@@ -221,9 +204,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'[0-9]').hasMatch(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must contain at least one number",
-          ),
+          content: Text("Password must contain at least one number"),
           backgroundColor: Colors.red,
         ),
       );
@@ -237,9 +218,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\]+=]').hasMatch(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must contain at least one special character",
-          ),
+          content: Text("Password must contain at least one special character"),
           backgroundColor: Colors.red,
         ),
       );
@@ -253,9 +232,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (password.contains(' ')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must not contain spaces",
-          ),
+          content: Text("Password must not contain spaces"),
           backgroundColor: Colors.red,
         ),
       );
@@ -269,9 +246,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Passwords do not match",
-          ),
+          content: Text("Passwords do not match"),
           backgroundColor: Colors.red,
         ),
       );
@@ -286,18 +261,73 @@ class _SignupScreenState extends State<SignupScreen> {
       isLoading = true;
     });
 
-    // ==========================================================
-    // SAVE USER
-    // ==========================================================
-
+    // try {
+    //   await DatabaseService.insertUser({
+    //     "name": name,
+    //     "mobile": mobile,
+    //     "village": village,
+    //     "land": land,
+    //     "crop": crop,
+    //     "password": password,
+    //   });
+    //
+    //   if (!mounted) return;
+    //
+    //   setState(() {
+    //     isLoading = false;
+    //   });
+    //
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text("Registration Successful"),
+    //       backgroundColor: Colors.green,
+    //     ),
+    //   );
+    //
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (_) => const LoginScreen(),
+    //     ),
+    //   );
+    // }
+    // catch (e) {
     try {
-      await DatabaseService.insertUser({
+      final existingUser = await FirebaseFirestore.instance
+          .collection('users')
+          .where('mobile', isEqualTo: mobile)
+          .limit(1)
+          .get();
+
+      if (existingUser.docs.isNotEmpty) {
+        if (!mounted) return;
+
+        setState(() {
+          isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Mobile number already registered"),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        return;
+      }
+
+      final userDocument = FirebaseFirestore.instance.collection('users').doc();
+
+      await userDocument.set({
+        "userId": userDocument.id,
         "name": name,
         "mobile": mobile,
         "village": village,
         "land": land,
         "crop": crop,
         "password": password,
+        "role": "farmer",
+        "createdAt": FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
@@ -315,9 +345,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     } catch (e) {
       if (!mounted) return;
@@ -359,9 +387,7 @@ class _SignupScreenState extends State<SignupScreen> {
           labelText: label,
           prefixIcon: Icon(icon),
           suffixIcon: suffixIcon,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
@@ -388,11 +414,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
         child: Column(
           children: [
-            const Icon(
-              Icons.person_add,
-              size: 100,
-              color: Colors.green,
-            ),
+            const Icon(Icons.person_add, size: 100, color: Colors.green),
 
             const SizedBox(height: 20),
 
@@ -410,22 +432,18 @@ class _SignupScreenState extends State<SignupScreen> {
             // ==================================================
             // FULL NAME
             // ==================================================
-
             buildTextField(
               nameController,
               "Full Name",
               Icons.person,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[a-zA-Z ]'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
               ],
             ),
 
             // ==================================================
             // MOBILE
             // ==================================================
-
             buildTextField(
               mobileController,
               "Mobile Number",
@@ -440,22 +458,18 @@ class _SignupScreenState extends State<SignupScreen> {
             // ==================================================
             // VILLAGE
             // ==================================================
-
             buildTextField(
               villageController,
               "Village",
               Icons.location_on,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[a-zA-Z ]'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
               ],
             ),
 
             // ==================================================
             // LAND AREA
             // ==================================================
-
             buildTextField(
               landController,
               "Land Area (Acres)",
@@ -464,31 +478,25 @@ class _SignupScreenState extends State<SignupScreen> {
                 decimal: true,
               ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[0-9.]'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
               ],
             ),
 
             // ==================================================
             // MAIN CROP
             // ==================================================
-
             buildTextField(
               cropController,
               "Main Crop",
               Icons.grass,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[a-zA-Z ]'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
               ],
             ),
 
             // ==================================================
             // PASSWORD
             // ==================================================
-
             buildTextField(
               passwordController,
               "Password",
@@ -497,21 +505,16 @@ class _SignupScreenState extends State<SignupScreen> {
 
               inputFormatters: [
                 LengthLimitingTextInputFormatter(8),
-                FilteringTextInputFormatter.deny(
-                  RegExp(r'\s'),
-                ),
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
               ],
 
               suffixIcon: IconButton(
                 icon: Icon(
-                  obscurePassword
-                      ? Icons.visibility
-                      : Icons.visibility_off,
+                  obscurePassword ? Icons.visibility : Icons.visibility_off,
                 ),
                 onPressed: () {
                   setState(() {
-                    obscurePassword =
-                        !obscurePassword;
+                    obscurePassword = !obscurePassword;
                   });
                 },
               ),
@@ -520,7 +523,6 @@ class _SignupScreenState extends State<SignupScreen> {
             // ==================================================
             // CONFIRM PASSWORD
             // ==================================================
-
             buildTextField(
               confirmPasswordController,
               "Confirm Password",
@@ -529,9 +531,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               inputFormatters: [
                 LengthLimitingTextInputFormatter(8),
-                FilteringTextInputFormatter.deny(
-                  RegExp(r'\s'),
-                ),
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
               ],
 
               suffixIcon: IconButton(
@@ -542,8 +542,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 onPressed: () {
                   setState(() {
-                    obscureConfirmPassword =
-                        !obscureConfirmPassword;
+                    obscureConfirmPassword = !obscureConfirmPassword;
                   });
                 },
               ),
@@ -554,7 +553,6 @@ class _SignupScreenState extends State<SignupScreen> {
             // ==================================================
             // PASSWORD REQUIREMENTS
             // ==================================================
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -562,14 +560,11 @@ class _SignupScreenState extends State<SignupScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.green.shade200,
-                ),
+                border: Border.all(color: Colors.green.shade200),
               ),
 
               child: const Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
@@ -597,23 +592,17 @@ class _SignupScreenState extends State<SignupScreen> {
             // ==================================================
             // REGISTER BUTTON
             // ==================================================
-
             SizedBox(
               width: double.infinity,
 
               child: ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : registerUser,
+                onPressed: isLoading ? null : registerUser,
 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
 
-                  padding:
-                      const EdgeInsets.symmetric(
-                    vertical: 15,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
 
                 child: isLoading
@@ -621,18 +610,14 @@ class _SignupScreenState extends State<SignupScreen> {
                         height: 22,
                         width: 22,
 
-                        child:
-                            CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
                     : const Text(
                         "Register",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
               ),
             ),
@@ -640,21 +625,15 @@ class _SignupScreenState extends State<SignupScreen> {
             // ==================================================
             // LOGIN
             // ==================================================
-
             TextButton(
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                 );
               },
 
-              child: const Text(
-                "Already have an account? Login",
-              ),
+              child: const Text("Already have an account? Login"),
             ),
           ],
         ),

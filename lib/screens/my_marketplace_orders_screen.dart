@@ -87,7 +87,7 @@ class MyMarketplaceOrdersScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   itemCount: sortedOrders.length,
                   itemBuilder: (context, index) {
-                    return _buildOrderCard(sortedOrders[index]);
+                    return _buildOrderCard(context, sortedOrders[index]);
                   },
                 );
               },
@@ -125,7 +125,10 @@ class MyMarketplaceOrdersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderCard(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  Widget _buildOrderCard(
+    BuildContext context,
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data();
 
     final orderId = (data["orderId"] ?? doc.id).toString();
@@ -240,9 +243,133 @@ class MyMarketplaceOrdersScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             _buildStatusMessage(status),
+
+            _buildBuyerOrderAction(context, orderId, status),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBuyerOrderAction(
+    BuildContext context,
+    String orderId,
+    String status,
+  ) {
+    if (status == "Ready for Pickup") {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              _showCompleteConfirmation(
+                context,
+                orderId,
+                "Picked Up & Received",
+              );
+            },
+            icon: const Icon(Icons.inventory_2_outlined),
+            label: const Text("Picked Up & Received"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (status == "Out for Delivery") {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              _showCompleteConfirmation(
+                context,
+                orderId,
+                "Received & Accepted",
+              );
+            },
+            icon: const Icon(Icons.check_circle_outline),
+            label: const Text("Received & Accepted"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  void _showCompleteConfirmation(
+    BuildContext context,
+    String orderId,
+    String actionText,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Confirm Receipt"),
+          content: Text(
+            "Have you received the fertilizer and checked the quantity?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text("Not Yet"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+
+                try {
+                  await FirebaseFirestore.instance
+                      .collection("leftover_orders")
+                      .doc(orderId)
+                      .update({
+                        "status": "Completed",
+                        "completedAt": FieldValue.serverTimestamp(),
+                      });
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Order completed successfully."),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Failed to complete order: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(actionText),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 class TractorOwnerBookingsScreen extends StatefulWidget {
   final Map<String, dynamic> user;
 
-  const TractorOwnerBookingsScreen({
-    super.key,
-    required this.user,
-  });
+  const TractorOwnerBookingsScreen({super.key, required this.user});
 
   @override
   State<TractorOwnerBookingsScreen> createState() =>
@@ -16,8 +13,7 @@ class TractorOwnerBookingsScreen extends StatefulWidget {
 
 class _TractorOwnerBookingsScreenState
     extends State<TractorOwnerBookingsScreen> {
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String _selectedFilter = 'All';
 
@@ -30,9 +26,7 @@ class _TractorOwnerBookingsScreenState
   ];
 
   String get ownerId {
-    return widget.user['uid']?.toString() ??
-        widget.user['userId']?.toString() ??
-        '';
+    return widget.user['id']?.toString() ?? '';
   }
 
   double _toDouble(dynamic value) {
@@ -78,15 +72,9 @@ class _TractorOwnerBookingsScreenState
     }
   }
 
-  Future<void> _updateBookingStatus(
-    String documentId,
-    String status,
-  ) async {
+  Future<void> _updateBookingStatus(String documentId, String status) async {
     try {
-      await _firestore
-          .collection('tractor_bookings')
-          .doc(documentId)
-          .update({
+      await _firestore.collection('tractor_bookings').doc(documentId).update({
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -95,13 +83,8 @@ class _TractorOwnerBookingsScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Booking $status successfully.',
-          ),
-          backgroundColor:
-              status == 'Cancelled'
-                  ? Colors.red
-                  : Colors.green,
+          content: Text('Booking $status successfully.'),
+          backgroundColor: status == 'Cancelled' ? Colors.red : Colors.green,
         ),
       );
     } catch (e) {
@@ -109,26 +92,19 @@ class _TractorOwnerBookingsScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Failed to update booking: $e',
-          ),
+          content: Text('Failed to update booking: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Future<void> _confirmStatusChange(
-    String documentId,
-    String newStatus,
-  ) async {
+  Future<void> _confirmStatusChange(String documentId, String newStatus) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text(
-            '$newStatus Booking',
-          ),
+          title: Text('$newStatus Booking'),
           content: Text(
             'Are you sure you want to mark this booking as $newStatus?',
           ),
@@ -141,10 +117,9 @@ class _TractorOwnerBookingsScreenState
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    newStatus == 'Cancelled'
-                        ? Colors.red
-                        : Colors.green,
+                backgroundColor: newStatus == 'Cancelled'
+                    ? Colors.red
+                    : Colors.green,
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
@@ -158,10 +133,7 @@ class _TractorOwnerBookingsScreenState
     );
 
     if (confirmed == true) {
-      await _updateBookingStatus(
-        documentId,
-        newStatus,
-      );
+      await _updateBookingStatus(documentId, newStatus);
     }
   }
 
@@ -176,11 +148,7 @@ class _TractorOwnerBookingsScreenState
           backgroundColor: Colors.green,
           foregroundColor: Colors.white,
         ),
-        body: const Center(
-          child: Text(
-            'User information is not available.',
-          ),
-        ),
+        body: const Center(child: Text('User information is not available.')),
       );
     }
 
@@ -200,10 +168,7 @@ class _TractorOwnerBookingsScreenState
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
                   .collection('tractor_bookings')
-                  .where(
-                    'ownerId',
-                    isEqualTo: ownerId,
-                  )
+                  .where('ownerId', isEqualTo: ownerId)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -218,49 +183,35 @@ class _TractorOwnerBookingsScreenState
                   );
                 }
 
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.green,
-                    ),
+                    child: CircularProgressIndicator(color: Colors.green),
                   );
                 }
 
-                final documents =
-                    snapshot.data?.docs ?? [];
+                final documents = snapshot.data?.docs ?? [];
 
-                final bookings =
-                    documents.where((document) {
-                  final data =
-                      document.data()
-                          as Map<String, dynamic>;
+                final bookings = documents.where((document) {
+                  final data = document.data() as Map<String, dynamic>;
 
                   if (_selectedFilter == 'All') {
                     return true;
                   }
 
-                  return data['status']
-                          ?.toString()
-                          .toLowerCase() ==
+                  return data['status']?.toString().toLowerCase() ==
                       _selectedFilter.toLowerCase();
                 }).toList();
 
                 bookings.sort((a, b) {
-                  final aData =
-                      a.data() as Map<String, dynamic>;
+                  final aData = a.data() as Map<String, dynamic>;
 
-                  final bData =
-                      b.data() as Map<String, dynamic>;
+                  final bData = b.data() as Map<String, dynamic>;
 
-                  final aTime =
-                      aData['bookingDateTime'];
+                  final aTime = aData['bookingDateTime'];
 
-                  final bTime =
-                      bData['bookingDateTime'];
+                  final bTime = bData['bookingDateTime'];
 
-                  if (aTime is Timestamp &&
-                      bTime is Timestamp) {
+                  if (aTime is Timestamp && bTime is Timestamp) {
                     return bTime.compareTo(aTime);
                   }
 
@@ -275,17 +226,11 @@ class _TractorOwnerBookingsScreenState
                   padding: const EdgeInsets.all(16),
                   itemCount: bookings.length,
                   itemBuilder: (context, index) {
-                    final document =
-                        bookings[index];
+                    final document = bookings[index];
 
-                    final data =
-                        document.data()
-                            as Map<String, dynamic>;
+                    final data = document.data() as Map<String, dynamic>;
 
-                    return _bookingCard(
-                      document.id,
-                      data,
-                    );
+                    return _bookingCard(document.id, data);
                   },
                 );
               },
@@ -301,23 +246,18 @@ class _TractorOwnerBookingsScreenState
       height: 60,
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: _filters.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(width: 8),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final filter = _filters[index];
-          final selected =
-              _selectedFilter == filter;
+          final selected = _selectedFilter == filter;
 
           return ChoiceChip(
             label: Text(filter),
             selected: selected,
-            selectedColor:
-                Colors.green.shade100,
+            selectedColor: Colors.green.shade100,
             backgroundColor: Colors.white,
             onSelected: (_) {
               setState(() {
@@ -330,33 +270,14 @@ class _TractorOwnerBookingsScreenState
     );
   }
 
-  Widget _bookingCard(
-    String documentId,
-    Map<String, dynamic> booking,
-  ) {
-    final bookingId = _getValue(
-      booking,
-      'bookingId',
-      documentId,
-    );
+  Widget _bookingCard(String documentId, Map<String, dynamic> booking) {
+    final bookingId = _getValue(booking, 'bookingId', documentId);
 
-    final tractorName = _getValue(
-      booking,
-      'tractorName',
-      'Tractor',
-    );
+    final tractorName = _getValue(booking, 'tractorName', 'Tractor');
 
-    final farmerName = _getValue(
-      booking,
-      'farmerName',
-      'Farmer',
-    );
+    final farmerName = _getValue(booking, 'farmerName', 'Farmer');
 
-    final farmerPhone = _getValue(
-      booking,
-      'farmerPhone',
-      '',
-    );
+    final farmerPhone = _getValue(booking, 'farmerPhone', '');
 
     final workLocation = _getValue(
       booking,
@@ -364,91 +285,52 @@ class _TractorOwnerBookingsScreenState
       'Location not available',
     );
 
-    final status = _getValue(
-      booking,
-      'status',
-      'Pending',
-    );
+    final status = _getValue(booking, 'status', 'Pending');
 
-    final bookingDate = _getValue(
-      booking,
-      'bookingDate',
-      '',
-    );
+    final bookingDate = _getValue(booking, 'bookingDate', '');
 
-    final bookingTime = _getValue(
-      booking,
-      'bookingTime',
-      '',
-    );
+    final bookingTime = _getValue(booking, 'bookingTime', '');
 
-    final duration = _toDouble(
-      booking['duration'],
-    );
+    final duration = _toDouble(booking['duration']);
 
-    final durationType = _getValue(
-      booking,
-      'durationType',
-      '',
-    );
+    final durationType = _getValue(booking, 'durationType', '');
 
-    final rentalOption = _getValue(
-      booking,
-      'rentalOption',
-      'Tractor Only',
-    );
+    final rentalOption = _getValue(booking, 'rentalOption', 'Tractor Only');
 
-    final totalAmount = _toDouble(
-      booking['totalAmount'],
-    );
+    final totalAmount = _toDouble(booking['totalAmount']);
 
-    final paymentStatus = _getValue(
-      booking,
-      'paymentStatus',
-      'Not available',
-    );
+    final paymentStatus = _getValue(booking, 'paymentStatus', 'Not available');
 
-    final statusColor =
-        _getStatusColor(status);
+    final statusColor = _getStatusColor(status);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 const CircleAvatar(
                   radius: 25,
-                  backgroundColor:
-                      Color(0xFFE8F5E9),
-                  child: Icon(
-                    Icons.agriculture,
-                    color: Colors.green,
-                    size: 28,
-                  ),
+                  backgroundColor: Color(0xFFE8F5E9),
+                  child: Icon(Icons.agriculture, color: Colors.green, size: 28),
                 ),
 
                 const SizedBox(width: 12),
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         tractorName,
                         style: const TextStyle(
                           fontSize: 19,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
@@ -465,26 +347,17 @@ class _TractorOwnerBookingsScreenState
                   ),
                 ),
 
-                _statusChip(
-                  status,
-                  statusColor,
-                ),
+                _statusChip(status, statusColor),
               ],
             ),
 
             const Divider(height: 28),
 
-            _infoRow(
-              Icons.person_outline,
-              'Farmer: $farmerName',
-            ),
+            _infoRow(Icons.person_outline, 'Farmer: $farmerName'),
 
             if (farmerPhone.isNotEmpty) ...[
               const SizedBox(height: 8),
-              _infoRow(
-                Icons.phone_outlined,
-                farmerPhone,
-              ),
+              _infoRow(Icons.phone_outlined, farmerPhone),
             ],
 
             const SizedBox(height: 8),
@@ -507,10 +380,7 @@ class _TractorOwnerBookingsScreenState
 
             const SizedBox(height: 8),
 
-            _infoRow(
-              Icons.location_on_outlined,
-              workLocation,
-            ),
+            _infoRow(Icons.location_on_outlined, workLocation),
 
             const SizedBox(height: 8),
 
@@ -525,12 +395,7 @@ class _TractorOwnerBookingsScreenState
 
             Row(
               children: [
-                Expanded(
-                  child: _summaryItem(
-                    'Payment',
-                    paymentStatus,
-                  ),
-                ),
+                Expanded(child: _summaryItem('Payment', paymentStatus)),
                 Expanded(
                   child: _summaryItem(
                     'Amount',
@@ -549,23 +414,13 @@ class _TractorOwnerBookingsScreenState
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        _confirmStatusChange(
-                          documentId,
-                          'Cancelled',
-                        );
+                        _confirmStatusChange(documentId, 'Cancelled');
                       },
-                      icon:
-                          const Icon(Icons.close),
-                      label:
-                          const Text('Reject'),
-                      style:
-                          OutlinedButton.styleFrom(
-                        foregroundColor:
-                            Colors.red,
-                        side:
-                            const BorderSide(
-                          color: Colors.red,
-                        ),
+                      icon: const Icon(Icons.close),
+                      label: const Text('Reject'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
                       ),
                     ),
                   ),
@@ -575,21 +430,13 @@ class _TractorOwnerBookingsScreenState
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        _confirmStatusChange(
-                          documentId,
-                          'Confirmed',
-                        );
+                        _confirmStatusChange(documentId, 'Confirmed');
                       },
-                      icon:
-                          const Icon(Icons.check),
-                      label:
-                          const Text('Accept'),
-                      style:
-                          ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.green,
-                        foregroundColor:
-                            Colors.white,
+                      icon: const Icon(Icons.check),
+                      label: const Text('Accept'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
                       ),
                     ),
                   ),
@@ -604,23 +451,13 @@ class _TractorOwnerBookingsScreenState
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    _confirmStatusChange(
-                      documentId,
-                      'Completed',
-                    );
+                    _confirmStatusChange(documentId, 'Completed');
                   },
-                  icon: const Icon(
-                    Icons.task_alt,
-                  ),
-                  label: const Text(
-                    'Mark as Completed',
-                  ),
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Colors.green,
-                    foregroundColor:
-                        Colors.white,
+                  icon: const Icon(Icons.task_alt),
+                  label: const Text('Mark as Completed'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
                   ),
                 ),
               ),
@@ -631,36 +468,24 @@ class _TractorOwnerBookingsScreenState
     );
   }
 
-  Widget _statusChip(
-    String status,
-    Color color,
-  ) {
+  Widget _statusChip(String status, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius:
-            BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            _getStatusIcon(status),
-            size: 14,
-            color: color,
-          ),
+          Icon(_getStatusIcon(status), size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             status,
             style: TextStyle(
               color: color,
               fontSize: 11,
-              fontWeight:
-                  FontWeight.bold,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -668,56 +493,28 @@ class _TractorOwnerBookingsScreenState
     );
   }
 
-  Widget _infoRow(
-    IconData icon,
-    String text,
-  ) {
+  Widget _infoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 17,
-          color: Colors.grey,
-        ),
+        Icon(icon, size: 17, color: Colors.grey),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-            ),
-          ),
-        ),
+        Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
       ],
     );
   }
 
-  Widget _summaryItem(
-    String title,
-    String value, {
-    bool highlight = false,
-  }) {
+  Widget _summaryItem(String title, String value, {bool highlight = false}) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
+        Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(
             fontSize: highlight ? 17 : 14,
-            fontWeight:
-                FontWeight.bold,
-            color: highlight
-                ? Colors.green
-                : Colors.black87,
+            fontWeight: FontWeight.bold,
+            color: highlight ? Colors.green : Colors.black87,
           ),
         ),
       ],
@@ -741,19 +538,13 @@ class _TractorOwnerBookingsScreenState
               _selectedFilter == 'All'
                   ? 'No Booking Requests'
                   : 'No ${_selectedFilter} Bookings',
-              style: const TextStyle(
-                fontSize: 21,
-                fontWeight:
-                    FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               'Booking requests for your tractors will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-              ),
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),

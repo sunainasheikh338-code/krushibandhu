@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../language/app_translations.dart';
 import '../language/language_provider.dart';
-import '../services/database_service.dart';
 import 'admin_screen.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
@@ -17,11 +17,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController mobileController =
-      TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
 
-  final TextEditingController passwordController =
-      TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool isLoading = false;
   bool obscurePassword = true;
@@ -44,14 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
   // ============================================================
 
   Map<String, String> get _lang {
-    final languageProvider =
-        Provider.of<LanguageProvider>(
+    final languageProvider = Provider.of<LanguageProvider>(
       context,
       listen: false,
     );
 
-    return AppTranslations.translations[
-            languageProvider.locale.languageCode] ??
+    return AppTranslations.translations[languageProvider.locale.languageCode] ??
         AppTranslations.translations["en"]!;
   }
 
@@ -87,9 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!RegExp(r'^[0-9]{10}$').hasMatch(mobile)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Enter a valid 10-digit mobile number",
-          ),
+          content: Text("Enter a valid 10-digit mobile number"),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,9 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!RegExp(r'^[6-9]').hasMatch(mobile)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Mobile number must start with 6, 7, 8 or 9",
-          ),
+          content: Text("Mobile number must start with 6, 7, 8 or 9"),
           backgroundColor: Colors.red,
         ),
       );
@@ -121,9 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (password.length != 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must be exactly 8 characters",
-          ),
+          content: Text("Password must be exactly 8 characters"),
           backgroundColor: Colors.red,
         ),
       );
@@ -138,9 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (password.contains(' ')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Password must not contain spaces",
-          ),
+          content: Text("Password must not contain spaces"),
           backgroundColor: Colors.red,
         ),
       );
@@ -161,10 +149,25 @@ class _LoginScreenState extends State<LoginScreen> {
       // DATABASE LOGIN
       // ========================================================
 
-      final user = await DatabaseService.login(
-        mobile,
-        password,
-      );
+      // final user = await DatabaseService.login(
+      //   mobile,
+      //   password,
+      // );
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('mobile', isEqualTo: mobile)
+          .where('password', isEqualTo: password)
+          .limit(1)
+          .get();
+
+      Map<String, dynamic>? user;
+
+      if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first;
+
+        user = {'id': doc.id, ...doc.data()};
+      }
 
       if (!mounted) return;
 
@@ -179,9 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              "Invalid Mobile Number or Password",
-            ),
+            content: Text("Invalid Mobile Number or Password"),
             backgroundColor: Colors.red,
           ),
         );
@@ -198,18 +199,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mobile == adminMobile) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              "Admin Login Successful",
-            ),
+            content: Text("Admin Login Successful"),
             backgroundColor: Colors.green,
           ),
         );
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const AdminScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const AdminScreen()),
         );
 
         return;
@@ -221,18 +218,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Login Successful",
-          ),
+          content: Text("Login Successful"),
           backgroundColor: Colors.green,
         ),
       );
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => HomeScreen(user: user),
-        ),
+        MaterialPageRoute(builder: (_) => HomeScreen(user: user!)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -242,12 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Login error: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Login error: $e"), backgroundColor: Colors.red),
       );
     }
   }
@@ -258,13 +246,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final languageProvider =
-        Provider.of<LanguageProvider>(context);
+    final languageProvider = Provider.of<LanguageProvider>(context);
 
     final lang =
-        AppTranslations.translations[
-                languageProvider.locale.languageCode] ??
-            AppTranslations.translations["en"]!;
+        AppTranslations.translations[languageProvider.locale.languageCode] ??
+        AppTranslations.translations["en"]!;
 
     return Scaffold(
       backgroundColor: Colors.green.shade50,
@@ -272,11 +258,8 @@ class _LoginScreenState extends State<LoginScreen> {
       // ========================================================
       // APP BAR
       // ========================================================
-
       appBar: AppBar(
-        title: Text(
-          lang["login"]!,
-        ),
+        title: Text(lang["login"]!),
         centerTitle: true,
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
@@ -292,19 +275,13 @@ class _LoginScreenState extends State<LoginScreen> {
             // ==================================================
             // ICON
             // ==================================================
-
-            const Icon(
-              Icons.agriculture,
-              size: 100,
-              color: Colors.green,
-            ),
+            const Icon(Icons.agriculture, size: 100, color: Colors.green),
 
             const SizedBox(height: 20),
 
             // ==================================================
             // WELCOME
             // ==================================================
-
             Text(
               lang["welcome"]!,
               style: const TextStyle(
@@ -319,7 +296,6 @@ class _LoginScreenState extends State<LoginScreen> {
             // ==================================================
             // MOBILE NUMBER
             // ==================================================
-
             TextField(
               controller: mobileController,
 
@@ -344,7 +320,6 @@ class _LoginScreenState extends State<LoginScreen> {
             // ==================================================
             // PASSWORD
             // ==================================================
-
             TextField(
               controller: passwordController,
 
@@ -354,9 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // NO SPACES
               inputFormatters: [
                 LengthLimitingTextInputFormatter(8),
-                FilteringTextInputFormatter.deny(
-                  RegExp(r'\s'),
-                ),
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
               ],
 
               decoration: InputDecoration(
@@ -366,15 +339,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 suffixIcon: IconButton(
                   icon: Icon(
-                    obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                    obscurePassword ? Icons.visibility : Icons.visibility_off,
                   ),
 
                   onPressed: () {
                     setState(() {
-                      obscurePassword =
-                          !obscurePassword;
+                      obscurePassword = !obscurePassword;
                     });
                   },
                 ),
@@ -386,7 +356,6 @@ class _LoginScreenState extends State<LoginScreen> {
             // ==================================================
             // LOGIN BUTTON
             // ==================================================
-
             SizedBox(
               width: double.infinity,
 
@@ -397,9 +366,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
 
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
 
                 child: isLoading
@@ -427,24 +394,17 @@ class _LoginScreenState extends State<LoginScreen> {
             // ==================================================
             // SIGN UP
             // ==================================================
-
             TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const SignupScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const SignupScreen()),
                 );
               },
 
               child: Text(
                 lang["dont_have_account"]!,
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: Colors.green, fontSize: 16),
               ),
             ),
           ],
