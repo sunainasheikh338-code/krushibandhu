@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseService {
   static Database? _database;
@@ -189,20 +190,21 @@ class DatabaseService {
   // ============================================================
 
   static Future<Map<String, dynamic>?> getUserByMobile(
-    String mobile,
-  ) async {
-    final db = await database;
+      String mobile,
+      ) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('mobile', isEqualTo: mobile)
+        .limit(1)
+        .get();
 
-    final List<Map<String, dynamic>> result =
-        await db.query(
-      'users',
-      where: 'mobile = ?',
-      whereArgs: [mobile],
-      limit: 1,
-    );
+    if (snapshot.docs.isNotEmpty) {
+      final doc = snapshot.docs.first;
 
-    if (result.isNotEmpty) {
-      return result.first;
+      return {
+        'id': doc.id,
+        ...doc.data(),
+      };
     }
 
     return null;
@@ -212,52 +214,65 @@ class DatabaseService {
   // UPDATE USER
   // ============================================================
 
-  static Future<int> updateUser(
-    int id,
-    Map<String, dynamic> user,
-  ) async {
-    final db = await database;
+  // static Future<int> updateUser(
+  //   int id,
+  //   Map<String, dynamic> user,
+  // ) async {
+  //   final db = await database;
+  //
+  //   return await db.update(
+  //     'users',
+  //     user,
+  //     where: 'id = ?',
+  //     whereArgs: [id],
+  //   );
+  // }
 
-    return await db.update(
-      'users',
-      user,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+  static Future<void> updateUser(String id,
+      Map<String, dynamic> user,) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(id)
+        .update(user);
   }
 
   // ============================================================
   // GET ALL USERS
   // ============================================================
 
-  static Future<List<Map<String, dynamic>>> getUsers() async {
-    final db = await database;
+  // static Future<List<Map<String, dynamic>>> getUsers() async {
+  //   final db = await database;
+  //
+  //   return await db.query(
+  //     'users',
+  //     orderBy: 'id DESC',
+  //   );
+  // }
 
-    return await db.query(
-      'users',
-      orderBy: 'id DESC',
-    );
+  static Future<List<Map<String, dynamic>>> getUsers() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .get();
+
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        ...doc.data(),
+      };
+    }).toList();
   }
 
-  // ============================================================
-  // GET USER BY ID
-  // ============================================================
+  static Future<Map<String, dynamic>?> getUserById(String id,) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(id)
+        .get();
 
-  static Future<Map<String, dynamic>?> getUserById(
-    int id,
-  ) async {
-    final db = await database;
-
-    final List<Map<String, dynamic>> result =
-        await db.query(
-      'users',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-
-    if (result.isNotEmpty) {
-      return result.first;
+    if (doc.exists) {
+      return {
+        'id': doc.id,
+        ...doc.data()!,
+      };
     }
 
     return null;
@@ -267,17 +282,26 @@ class DatabaseService {
   // MAKE USER ADMIN
   // ============================================================
 
-  static Future<int> makeAdmin(int id) async {
-    final db = await database;
+  // static Future<int> makeAdmin(int id) async {
+  //   final db = await database;
+  //
+  //   return await db.update(
+  //     'users',
+  //     {
+  //       'role': 'admin',
+  //     },
+  //     where: 'id = ?',
+  //     whereArgs: [id],
+  //   );
+  // }
 
-    return await db.update(
-      'users',
-      {
-        'role': 'admin',
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+  static Future<void> makeAdmin(String id) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(id)
+        .update({
+      'role': 'admin',
+    });
   }
 
   // ============================================================

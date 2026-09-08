@@ -190,13 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // ========================================================
-      // ADMIN LOGIN
-      //
-      // ONLY 9741634709 CAN OPEN ADMIN DASHBOARD
-      // ========================================================
-
-      if (mobile == adminMobile) {
+      if (user['role'] == 'admin') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Admin Login Successful"),
@@ -211,10 +205,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
         return;
       }
-
-      // ========================================================
-      // NORMAL USER LOGIN
-      // ========================================================
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
