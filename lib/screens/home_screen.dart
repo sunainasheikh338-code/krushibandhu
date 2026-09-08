@@ -7,7 +7,6 @@ import '../language/language_provider.dart';
 import 'admin_screen.dart';
 import 'ai_assistant_screen.dart';
 import 'crop_reminder_screen.dart';
-import 'farmer_credit_score_screen.dart';
 import 'farmer_marketplace_screen.dart';
 import 'fertilizer_booking_screen.dart';
 import 'labour_hiring_screen.dart';
@@ -17,10 +16,9 @@ import 'multilanguage_screen.dart';
 import 'my_bookings_screen.dart';
 import 'my_tractor_bookings_screen.dart';
 import 'profile_screen.dart';
+import 'my_marketplace_orders_screen.dart';
 
-// import 'qr_verification_screen.dart';
 import 'tractor_rental_screen.dart';
-import 'voice_assistant_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -221,6 +219,31 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => MyTractorBookingsScreen(user: user),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(
+                Icons.shopping_bag,
+                color: Colors.green,
+              ),
+              title: const Text(
+                'My Marketplace Orders',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MyMarketplaceOrdersScreen(
+                      user: user,
+                    ),
                   ),
                 );
               },
