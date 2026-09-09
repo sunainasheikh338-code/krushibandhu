@@ -81,7 +81,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['marketplace'] ?? 'Marketplace',
         'icon': Icons.store,
-        'screen': const FarmerMarketplaceScreen(),
+        'screen': FarmerMarketplaceScreen(user: user),
       },
       // {
       //   'title': lang['credit_score'] ?? 'Credit Score',
