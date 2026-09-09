@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
 class MyMarketplaceOrdersScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -17,82 +18,488 @@ class MyMarketplaceOrdersScreen extends StatelessWidget {
         .trim();
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     backgroundColor: const Color(0xFFF5F7F5),
+  //     appBar: AppBar(
+  //       title: const Text(
+  //         "My Marketplace Orders",
+  //         style: TextStyle(fontWeight: FontWeight.bold),
+  //       ),
+  //       centerTitle: true,
+  //       backgroundColor: Colors.green,
+  //       foregroundColor: Colors.white,
+  //     ),
+  //     body: buyerId.isEmpty
+  //         ? const Center(
+  //             child: Text(
+  //               "Farmer details not found.",
+  //               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+  //             ),
+  //           )
+  //         : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+  //             stream: FirebaseFirestore.instance
+  //                 .collection("leftover_orders")
+  //                 .where("buyerId", isEqualTo: buyerId)
+  //                 .snapshots(),
+  //             builder: (context, snapshot) {
+  //               if (snapshot.connectionState == ConnectionState.waiting) {
+  //                 return const Center(
+  //                   child: CircularProgressIndicator(color: Colors.green),
+  //                 );
+  //               }
+  //
+  //               if (snapshot.hasError) {
+  //                 return Center(
+  //                   child: Padding(
+  //                     padding: const EdgeInsets.all(24),
+  //                     child: Text(
+  //                       "Unable to load your marketplace orders.\n\n"
+  //                       "${snapshot.error}",
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(color: Colors.grey.shade700),
+  //                     ),
+  //                   ),
+  //                 );
+  //               }
+  //
+  //               final orders = snapshot.data?.docs ?? [];
+  //
+  //               if (orders.isEmpty) {
+  //                 return _emptyState();
+  //               }
+  //
+  //               // Sort newest orders first.
+  //               final sortedOrders = [...orders];
+  //
+  //               sortedOrders.sort((a, b) {
+  //                 final aTime = a.data()["createdAt"];
+  //                 final bTime = b.data()["createdAt"];
+  //
+  //                 if (aTime is Timestamp && bTime is Timestamp) {
+  //                   return bTime.compareTo(aTime);
+  //                 }
+  //
+  //                 return 0;
+  //               });
+  //
+  //               return ListView.builder(
+  //                 padding: const EdgeInsets.all(16),
+  //                 itemCount: sortedOrders.length,
+  //                 itemBuilder: (context, index) {
+  //                   return _buildOrderCard(context, sortedOrders[index]);
+  //                 },
+  //               );
+  //             },
+  //           ),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7F5),
-      appBar: AppBar(
-        title: const Text(
-          "My Marketplace Orders",
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F7F5),
+        appBar: AppBar(
+          title: const Text(
+            "My Marketplace Orders",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(icon: Icon(Icons.agriculture), text: "Leftover Fertilizer"),
+              Tab(icon: Icon(Icons.storefront), text: "Farmer Marketplace"),
+            ],
+          ),
         ),
-        centerTitle: true,
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-      ),
-      body: buyerId.isEmpty
-          ? const Center(
-              child: Text(
-                "Farmer details not found.",
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+        body: buyerId.isEmpty
+            ? const Center(
+                child: Text(
+                  "Farmer details not found.",
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+                ),
+              )
+            : TabBarView(
+                children: [
+                  _buildLeftoverFertilizerOrders(),
+                  _buildFarmerMarketplaceOrders(),
+                ],
               ),
-            )
-          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection("leftover_orders")
-                  .where("buyerId", isEqualTo: buyerId)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.green),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        "Unable to load your marketplace orders.\n\n"
-                        "${snapshot.error}",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey.shade700),
-                      ),
-                    ),
-                  );
-                }
-
-                final orders = snapshot.data?.docs ?? [];
-
-                if (orders.isEmpty) {
-                  return _emptyState();
-                }
-
-                // Sort newest orders first.
-                final sortedOrders = [...orders];
-
-                sortedOrders.sort((a, b) {
-                  final aTime = a.data()["createdAt"];
-                  final bTime = b.data()["createdAt"];
-
-                  if (aTime is Timestamp && bTime is Timestamp) {
-                    return bTime.compareTo(aTime);
-                  }
-
-                  return 0;
-                });
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: sortedOrders.length,
-                  itemBuilder: (context, index) {
-                    return _buildOrderCard(context, sortedOrders[index]);
-                  },
-                );
-              },
-            ),
+      ),
     );
+  }
+
+  Widget _buildLeftoverFertilizerOrders() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection("leftover_orders")
+          .where("buyerId", isEqualTo: buyerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.green),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                "Unable to load your fertilizer orders.\n\n"
+                "${snapshot.error}",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+            ),
+          );
+        }
+
+        final orders = snapshot.data?.docs ?? [];
+
+        if (orders.isEmpty) {
+          return _emptyState();
+        }
+
+        final sortedOrders = [...orders];
+
+        sortedOrders.sort((a, b) {
+          final aTime = a.data()["createdAt"];
+          final bTime = b.data()["createdAt"];
+
+          if (aTime is Timestamp && bTime is Timestamp) {
+            return bTime.compareTo(aTime);
+          }
+
+          return 0;
+        });
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: sortedOrders.length,
+          itemBuilder: (context, index) {
+            return _buildOrderCard(context, sortedOrders[index]);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFarmerMarketplaceOrders() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection("farmer_marketplace_orders")
+          .where("buyerId", isEqualTo: buyerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.green),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                "Unable to load your farmer marketplace orders.\n\n"
+                "${snapshot.error}",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+            ),
+          );
+        }
+
+        final orders = snapshot.data?.docs ?? [];
+
+        if (orders.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.storefront_outlined,
+                    size: 80,
+                    color: Colors.green,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "No Farmer Marketplace Orders",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Your farmer marketplace purchases will appear here.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final sortedOrders = [...orders];
+
+        sortedOrders.sort((a, b) {
+          final aTime = a.data()["createdAt"];
+          final bTime = b.data()["createdAt"];
+
+          if (aTime is Timestamp && bTime is Timestamp) {
+            return bTime.compareTo(aTime);
+          }
+
+          return 0;
+        });
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: sortedOrders.length,
+          itemBuilder: (context, index) {
+            return _buildFarmerMarketplaceOrderCard(
+              context,
+              sortedOrders[index],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFarmerMarketplaceOrderCard(
+    BuildContext context,
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+
+    final orderId = (data["orderId"] ?? doc.id).toString();
+
+    final productName = (data["productName"] ?? "Unknown Product").toString();
+
+    final sellerName = (data["sellerName"] ?? "Farmer").toString();
+
+    final quantity = (data["quantity"] as num?)?.toDouble() ?? 0;
+
+    final unit = (data["unit"] ?? "Kg").toString();
+
+    final pricePerUnit = (data["pricePerUnit"] as num?)?.toDouble() ?? 0;
+
+    final totalAmount = (data["totalAmount"] as num?)?.toDouble() ?? 0;
+
+    final status = (data["status"] ?? "Pending").toString();
+
+    final createdAt = data["createdAt"];
+
+    String orderDate = "Date not available";
+
+    if (createdAt is Timestamp) {
+      final date = createdAt.toDate();
+
+      orderDate =
+          "${date.day.toString().padLeft(2, '0')}/"
+          "${date.month.toString().padLeft(2, '0')}/"
+          "${date.year}";
+    }
+
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.storefront, color: Colors.green),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Farmer Marketplace Order",
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      Text(
+                        orderId,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                _statusChip(status),
+              ],
+            ),
+
+            const Divider(height: 28),
+
+            _detailRow(Icons.eco, "Product", productName),
+
+            _detailRow(Icons.person_outline, "Seller", sellerName),
+
+            _detailRow(
+              Icons.scale_outlined,
+              "Quantity",
+              "${quantity.toStringAsFixed(quantity % 1 == 0 ? 0 : 2)} $unit",
+            ),
+
+            _detailRow(
+              Icons.currency_rupee,
+              "Price / $unit",
+              "₹${pricePerUnit.toStringAsFixed(2)}",
+            ),
+
+            _detailRow(
+              Icons.payments_outlined,
+              "Total Amount",
+              "₹${totalAmount.toStringAsFixed(2)}",
+            ),
+
+            _detailRow(
+              Icons.location_on_outlined,
+              "Pickup Village",
+              (data["village"] ?? "Not available").toString(),
+            ),
+
+            _detailRow(Icons.calendar_today_outlined, "Order Date", orderDate),
+
+            const SizedBox(height: 12),
+
+            _buildStatusMessage(status),
+
+            _buildFarmerMarketplaceBuyerAction(context, orderId, status),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFarmerMarketplaceCompleteConfirmation(
+    BuildContext context,
+    String orderId,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Confirm Receipt"),
+          content: const Text(
+            "Have you picked up the product and checked the quantity?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text("Not Yet"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+
+                try {
+                  await FirebaseFirestore.instance
+                      .collection("farmer_marketplace_orders")
+                      .doc(orderId)
+                      .update({
+                        "status": "Completed",
+                        "completedAt": FieldValue.serverTimestamp(),
+                        "updatedAt": FieldValue.serverTimestamp(),
+                      });
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Order completed successfully."),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Failed to complete order: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Confirm Received"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFarmerMarketplaceBuyerAction(
+    BuildContext context,
+    String orderId,
+    String status,
+  ) {
+    if (status == "Ready for Pickup") {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              _showFarmerMarketplaceCompleteConfirmation(context, orderId);
+            },
+            icon: const Icon(Icons.inventory_2_outlined),
+            label: const Text("Picked Up & Received"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _emptyState() {

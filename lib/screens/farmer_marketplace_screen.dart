@@ -369,11 +369,7 @@ class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Purchase option will be added next.'),
-                    ),
-                  );
+                  _showBuyDialog(data);
                 },
                 icon: const Icon(Icons.shopping_cart),
                 label: const Text('BUY NOW'),
@@ -391,6 +387,266 @@ class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
         ),
       ),
     );
+  }
+
+  void _showBuyDialog(Map<String, dynamic> data) {
+    final quantityController = TextEditingController();
+
+    final productName = data['productName']?.toString() ?? 'Product';
+
+    final unit = data['unit']?.toString() ?? 'Kg';
+
+    final availableQuantity =
+        (data['availableQuantity'] as num?)?.toDouble() ?? 0;
+
+    final pricePerUnit = (data['pricePerUnit'] as num?)?.toDouble() ?? 0;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final quantity =
+                double.tryParse(quantityController.text.trim()) ?? 0;
+
+            final totalAmount = quantity * pricePerUnit;
+
+            final isValidQuantity =
+                quantity > 0 && quantity <= availableQuantity;
+
+            return AlertDialog(
+              title: Text('Buy $productName'),
+
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available: '
+                      '${_formatNumber(availableQuantity)} '
+                      '$unit',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      'Price: ₹${_formatNumber(pricePerUnit)} '
+                      '/ $unit',
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    TextField(
+                      controller: quantityController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (_) {
+                        setDialogState(() {});
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Quantity to buy ($unit)',
+                        prefixIcon: const Icon(Icons.scale),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    if (quantity > 0)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Total Amount',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            Text(
+                              '₹${_formatNumber(totalAmount)}',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+
+                            const SizedBox(height: 3),
+
+                            Text(
+                              '${_formatNumber(quantity)} '
+                              '$unit × '
+                              '₹${_formatNumber(pricePerUnit)}',
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    if (quantity > availableQuantity)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          'Only '
+                          '${_formatNumber(availableQuantity)} '
+                          '$unit available.',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+
+                ElevatedButton(
+                  onPressed: isValidQuantity
+                      ? () {
+                          Navigator.pop(dialogContext);
+                          _purchaseMarketplaceProduct(data, quantity);
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Confirm Purchase'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _purchaseMarketplaceProduct(
+    Map<String, dynamic> data,
+    double quantity,
+  ) async {
+    final listingId = data['listingId']?.toString() ?? '';
+
+    final buyerId =
+        widget.user?['id']?.toString() ??
+        widget.user?['userId']?.toString() ??
+        '';
+
+    final buyerName = widget.user?['name']?.toString() ?? '';
+
+    final buyerMobile = widget.user?['mobile']?.toString() ?? '';
+
+    if (listingId.isEmpty || buyerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to process purchase.')),
+      );
+      return;
+    }
+
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      final listingRef = firestore
+          .collection('farmer_marketplace_listings')
+          .doc(listingId);
+
+      final orderRef = firestore.collection('farmer_marketplace_orders').doc();
+
+      await firestore.runTransaction((transaction) async {
+        final listingSnapshot = await transaction.get(listingRef);
+
+        if (!listingSnapshot.exists) {
+          throw Exception('This product is no longer available.');
+        }
+
+        final listing = listingSnapshot.data() as Map<String, dynamic>;
+
+        final sellerId = listing['sellerId']?.toString() ?? '';
+
+        if (sellerId == buyerId) {
+          throw Exception('You cannot buy your own product.');
+        }
+
+        final status = listing['status']?.toString() ?? '';
+
+        if (status != 'Available') {
+          throw Exception('This product is no longer available.');
+        }
+
+        final available =
+            (listing['availableQuantity'] as num?)?.toDouble() ?? 0;
+
+        final pricePerUnit = (listing['pricePerUnit'] as num?)?.toDouble() ?? 0;
+
+        if (quantity <= 0 || quantity > available) {
+          throw Exception('Requested quantity is not available.');
+        }
+
+        final remaining = available - quantity;
+
+        final newStatus = remaining <= 0 ? 'Sold' : 'Available';
+
+        final totalAmount = quantity * pricePerUnit;
+
+        transaction.update(listingRef, {
+          'availableQuantity': remaining,
+          'status': newStatus,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        transaction.set(orderRef, {
+          'orderId': orderRef.id,
+          'listingId': listingId,
+          'buyerId': buyerId,
+          'buyerName': buyerName,
+          'buyerMobile': buyerMobile,
+          'sellerId': sellerId,
+          'sellerName': listing['sellerName'] ?? '',
+          'sellerMobile': listing['sellerMobile'] ?? '',
+          'productName': listing['productName'] ?? '',
+          'quantity': quantity,
+          'unit': listing['unit'] ?? 'Kg',
+          'pricePerUnit': pricePerUnit,
+          'totalAmount': totalAmount,
+          'status': 'Pending',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Purchase request placed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   Widget _marketplaceInfoRow(IconData icon, String label, String value) {
@@ -416,44 +672,568 @@ class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
   }
 
   Widget _buildSellTab() {
+    final sellerId =
+        widget.user?['id']?.toString() ??
+        widget.user?['userId']?.toString() ??
+        '';
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+          child: Column(
+            children: [
+              const Icon(Icons.agriculture, size: 70, color: Colors.green),
+
+              const SizedBox(height: 15),
+
+              const Text(
+                'Sell Your Farm Products',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                'List your harvested crops or other farm products '
+                'and choose your own selling price.',
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 25),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _showSellForm();
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('List Product for Sale'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Orders for My Listings',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+
+        Expanded(
+          child: sellerId.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Farmer information not found.',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                )
+              : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance
+                      .collection('farmer_marketplace_orders')
+                      .where('sellerId', isEqualTo: sellerId)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.green),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            'Unable to load orders.\n\n'
+                            '${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                        ),
+                      );
+                    }
+
+                    final orders = snapshot.data?.docs ?? [];
+
+                    if (orders.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 70,
+                                color: Colors.green.shade300,
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'No Orders Yet',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Orders for your listed products '
+                                'will appear here.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    final sortedOrders = [...orders];
+
+                    sortedOrders.sort((a, b) {
+                      final aTime = a.data()['createdAt'];
+                      final bTime = b.data()['createdAt'];
+
+                      if (aTime is Timestamp && bTime is Timestamp) {
+                        return bTime.compareTo(aTime);
+                      }
+
+                      return 0;
+                    });
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      itemCount: sortedOrders.length,
+                      itemBuilder: (context, index) {
+                        return _buildSellerOrderCard(sortedOrders[index]);
+                      },
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSellerOrderCard(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+
+    final orderId = (data['orderId'] ?? doc.id).toString();
+
+    final productName = (data['productName'] ?? 'Product').toString();
+
+    final buyerName = (data['buyerName'] ?? 'Farmer').toString();
+
+    final buyerMobile = (data['buyerMobile'] ?? '').toString();
+
+    final quantity = (data['quantity'] as num?)?.toDouble() ?? 0;
+
+    final unit = (data['unit'] ?? 'Kg').toString();
+
+    final pricePerUnit = (data['pricePerUnit'] as num?)?.toDouble() ?? 0;
+
+    final totalAmount = (data['totalAmount'] as num?)?.toDouble() ?? 0;
+
+    final status = (data['status'] ?? 'Pending').toString();
+
+    final buyerVillage = (data['buyerVillage'] ?? '').toString();
+
+    final createdAt = data['createdAt'];
+
+    String orderDate = 'Date not available';
+
+    if (createdAt is Timestamp) {
+      final date = createdAt.toDate();
+
+      orderDate =
+          '${date.day.toString().padLeft(2, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.year}';
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.receipt_long, color: Colors.green),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Marketplace Order',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      Text(
+                        orderId,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                _marketplaceOrderStatusChip(status),
+              ],
+            ),
+
+            const Divider(height: 25),
+
+            _marketplaceOrderInfoRow(Icons.agriculture, 'Product', productName),
+
+            _marketplaceOrderInfoRow(Icons.person_outline, 'Buyer', buyerName),
+
+            if (buyerMobile.isNotEmpty)
+              if ((status.toLowerCase().trim() == "completed" ||
+                      status.toLowerCase().trim() == "ready for pickup") &&
+                  buyerMobile.isNotEmpty)
+                _marketplaceOrderInfoRow(Icons.phone, "Mobile", buyerMobile),
+
+            if (buyerVillage.isNotEmpty)
+              _marketplaceOrderInfoRow(
+                Icons.location_on_outlined,
+                'Village',
+                buyerVillage,
+              ),
+
+            _marketplaceOrderInfoRow(
+              Icons.scale_outlined,
+              'Quantity',
+              '${_formatNumber(quantity)} $unit',
+            ),
+
+            _marketplaceOrderInfoRow(
+              Icons.currency_rupee,
+              'Price / $unit',
+              '₹${_formatNumber(pricePerUnit)}',
+            ),
+
+            _marketplaceOrderInfoRow(
+              Icons.payments_outlined,
+              'Total Amount',
+              '₹${_formatNumber(totalAmount)}',
+            ),
+
+            _marketplaceOrderInfoRow(
+              Icons.calendar_today_outlined,
+              'Order Date',
+              orderDate,
+            ),
+
+            const SizedBox(height: 12),
+
+            _buildSellerOrderAction(doc.id, data, status),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _marketplaceOrderInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
+          Icon(icon, size: 18, color: Colors.green),
+          const SizedBox(width: 8),
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
+          Expanded(child: Text(value, overflow: TextOverflow.ellipsis)),
+        ],
+      ),
+    );
+  }
 
-          const Icon(Icons.agriculture, size: 70, color: Colors.green),
-
-          const SizedBox(height: 15),
-
-          const Text(
-            'Sell Your Farm Products',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-
-          const SizedBox(height: 8),
-
-          const Text(
-            'List your harvested crops or other farm products '
-            'and choose your own selling price.',
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 25),
-
-          SizedBox(
-            width: double.infinity,
+  Widget _buildSellerOrderAction(
+    String orderId,
+    Map<String, dynamic> data,
+    String status,
+  ) {
+    if (status == 'Pending') {
+      return Row(
+        children: [
+          Expanded(
             child: ElevatedButton.icon(
               onPressed: () {
-                _showSellForm();
+                _confirmMarketplaceOrder(orderId);
               },
-              icon: const Icon(Icons.add),
-              label: const Text('List Product for Sale'),
+              icon: const Icon(Icons.check),
+              label: const Text('Confirm'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                _cancelMarketplaceOrder(orderId, data);
+              },
+              icon: const Icon(Icons.close),
+              label: const Text('Cancel'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (status == 'Confirmed') {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            _markMarketplaceOrderReady(orderId);
+          },
+          icon: const Icon(Icons.inventory_2_outlined),
+          label: const Text('Ready for Pickup'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Future<void> _confirmMarketplaceOrder(String orderId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('farmer_marketplace_orders')
+          .doc(orderId)
+          .update({
+            'status': 'Confirmed',
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order confirmed successfully.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to confirm order: $e')));
+    }
+  }
+
+  Future<void> _markMarketplaceOrderReady(String orderId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('farmer_marketplace_orders')
+          .doc(orderId)
+          .update({
+            'status': 'Ready for Pickup',
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order marked as Ready for Pickup.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update order: $e')));
+    }
+  }
+
+  Future<void> _cancelMarketplaceOrder(
+    String orderId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      final orderRef = firestore
+          .collection('farmer_marketplace_orders')
+          .doc(orderId);
+
+      final listingId = data['listingId']?.toString() ?? '';
+
+      if (listingId.isEmpty) {
+        throw Exception('Listing information not found.');
+      }
+
+      final listingRef = firestore
+          .collection('farmer_marketplace_listings')
+          .doc(listingId);
+
+      await firestore.runTransaction((transaction) async {
+        final orderSnapshot = await transaction.get(orderRef);
+        final listingSnapshot = await transaction.get(listingRef);
+
+        if (!orderSnapshot.exists) {
+          throw Exception('Order not found.');
+        }
+
+        if (!listingSnapshot.exists) {
+          throw Exception('Product listing not found.');
+        }
+
+        final order = orderSnapshot.data() as Map<String, dynamic>;
+        final listing = listingSnapshot.data() as Map<String, dynamic>;
+
+        final currentStatus = order['status']?.toString() ?? '';
+
+        if (currentStatus == 'Completed') {
+          throw Exception('Completed orders cannot be cancelled.');
+        }
+
+        if (currentStatus == 'Cancelled') {
+          throw Exception('This order is already cancelled.');
+        }
+
+        final orderedQuantity = (order['quantity'] as num?)?.toDouble() ?? 0;
+
+        final currentAvailable =
+            (listing['availableQuantity'] as num?)?.toDouble() ?? 0;
+
+        final originalQuantity = (listing['quantity'] as num?)?.toDouble() ?? 0;
+
+        final restoredQuantity = currentAvailable + orderedQuantity;
+
+        // Don't allow available quantity to exceed original listing quantity.
+        final newAvailableQuantity = restoredQuantity > originalQuantity
+            ? originalQuantity
+            : restoredQuantity;
+
+        transaction.update(listingRef, {
+          'availableQuantity': newAvailableQuantity,
+          'status': newAvailableQuantity > 0 ? 'Available' : 'Sold',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        transaction.update(orderRef, {
+          'status': 'Cancelled',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order cancelled and quantity restored.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
+
+  Widget _marketplaceOrderStatusChip(String status) {
+    Color color;
+    IconData icon;
+
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        color = Colors.blue;
+        icon = Icons.check_circle_outline;
+        break;
+
+      case 'ready for pickup':
+        color = Colors.orange;
+        icon = Icons.inventory_2_outlined;
+        break;
+
+      case 'completed':
+        color = Colors.green;
+        icon = Icons.task_alt;
+        break;
+
+      case 'cancelled':
+        color = Colors.red;
+        icon = Icons.cancel_outlined;
+        break;
+
+      default:
+        color = Colors.grey;
+        icon = Icons.pending_actions;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 4),
+          Text(
+            status,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
