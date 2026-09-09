@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:krushibandhu/screens/voice_assistant_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../language/app_translations.dart';
@@ -71,13 +72,13 @@ class HomeScreen extends StatelessWidget {
       //   'icon': Icons.language,
       //   'screen': const MultiLanguageScreen(),
       // },
-      // {
-      //   'title': lang['voice_assistant'] ?? 'Voice Assistant',
-      //   'icon': Icons.mic,
-      //   'screen': VoiceAssistantScreen(
-      //     user: user,
-      //   ),
-      // },
+      {
+        'title': lang['voice_assistant'] ?? 'Voice Assistant',
+        'icon': Icons.mic,
+        'screen': VoiceAssistantScreen(
+          user: user,
+        ),
+      },
       {
         'title': lang['marketplace'] ?? 'Marketplace',
         'icon': Icons.store,
