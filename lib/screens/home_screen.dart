@@ -20,6 +20,7 @@ import 'profile_screen.dart';
 import 'my_marketplace_orders_screen.dart';
 
 import 'tractor_rental_screen.dart';
+import 'my_labour_requests_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -218,6 +219,24 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => MyTractorBookingsScreen(user: user),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.engineering, color: Colors.green),
+              title: const Text(
+                'My Labour Requests',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MyLabourRequestsScreen(user: user),
                   ),
                 );
               },
