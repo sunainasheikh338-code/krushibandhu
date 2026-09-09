@@ -11,22 +11,20 @@ class LabourHiringScreen extends StatefulWidget {
 }
 
 class _LabourHiringScreenState extends State<LabourHiringScreen> {
-  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final TextEditingController labourController = TextEditingController();
   final TextEditingController villageController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
-  final TextEditingController mobileController = TextEditingController();
 
   Map<String, dynamic>? selectedLabour;
+
   int numberOfLabourers = 0;
   double totalCost = 0;
+  bool isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
 
-    mobileController.text = widget.user?['mobile']?.toString() ?? '';
     villageController.text = widget.user?['village']?.toString() ?? '';
   }
 
@@ -43,10 +41,12 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
   }
 
   Future<void> _selectDate() async {
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now().add(const Duration(days: 1)),
+      initialDate: tomorrow,
+      firstDate: tomorrow,
       lastDate: DateTime(2050),
     );
 
@@ -57,12 +57,171 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
     }
   }
 
+  Future<void> _hireLabour() async {
+    if (selectedLabour == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a labour type")),
+      );
+      return;
+    }
+
+    final count = int.tryParse(labourController.text.trim());
+
+    if (count == null || count <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter a valid number of labourers")),
+      );
+      return;
+    }
+
+    final available =
+        int.tryParse(
+          selectedLabour?['availableLabourers']?.toString() ?? '0',
+        ) ??
+        0;
+
+    if (count > available) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Only $available labourers are available")),
+      );
+      return;
+    }
+
+    if (villageController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please enter the village")));
+      return;
+    }
+
+    if (dateController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select the work date")),
+      );
+      return;
+    }
+
+    final farmerId =
+        widget.user?['id']?.toString() ??
+        widget.user?['userId']?.toString() ??
+        '';
+
+    if (farmerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Farmer information not found")),
+      );
+      return;
+    }
+
+    final farmerName = widget.user?['name']?.toString() ?? '';
+
+    final farmerMobile = widget.user?['mobile']?.toString() ?? '';
+
+    final labourTypeId = selectedLabour?['id']?.toString() ?? '';
+
+    final labourTypeName = selectedLabour?['name']?.toString() ?? '';
+
+    final wage =
+        double.tryParse(selectedLabour?['wagePerDay']?.toString() ?? '0') ?? 0;
+
+    final totalAmount = count * wage;
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      final labourTypeRef = firestore
+          .collection('labour_types')
+          .doc(labourTypeId);
+
+      final requestRef = firestore.collection('labour_requests').doc();
+
+      await firestore.runTransaction((transaction) async {
+        final labourSnapshot = await transaction.get(labourTypeRef);
+
+        if (!labourSnapshot.exists) {
+          throw Exception("Labour type is no longer available");
+        }
+
+        final labourData = labourSnapshot.data() as Map<String, dynamic>;
+
+        final currentAvailable =
+            int.tryParse(labourData['availableLabourers']?.toString() ?? '0') ??
+            0;
+
+        final active = labourData['active'] ?? false;
+
+        if (!active) {
+          throw Exception("This labour type is currently unavailable");
+        }
+
+        if (count > currentAvailable) {
+          throw Exception("Only $currentAvailable labourers are available");
+        }
+
+        final requestData = <String, dynamic>{
+          'requestId': requestRef.id,
+          'farmerId': farmerId,
+          'farmerName': farmerName,
+          'farmerMobile': farmerMobile,
+          'village': villageController.text.trim(),
+          'labourTypeId': labourTypeId,
+          'labourType': labourTypeName,
+          'numberOfLabourers': count,
+          'wagePerDay': wage,
+          'totalCost': totalAmount,
+          'workDate': dateController.text.trim(),
+          'status': 'Pending',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+
+        transaction.set(requestRef, requestData);
+
+        transaction.update(labourTypeRef, {
+          'availableLabourers': currentAvailable - count,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+
+      if (!mounted) return;
+
+      setState(() {
+        isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Labour request submitted successfully")),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isSubmitting = false;
+      });
+
+      String message = e.toString();
+
+      if (message.startsWith("Exception: ")) {
+        message = message.substring(11);
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
   @override
   void dispose() {
     labourController.dispose();
     villageController.dispose();
     dateController.dispose();
-    mobileController.dispose();
     super.dispose();
   }
 
@@ -119,7 +278,6 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 20),
 
-                // Labour Type
                 DropdownButtonFormField<String>(
                   value: selectedLabour?['id']?.toString(),
                   decoration: const InputDecoration(
@@ -130,6 +288,7 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
                     final data = doc.data() as Map<String, dynamic>;
 
                     final name = data['name']?.toString() ?? '';
+
                     final available = data['availableLabourers'] ?? 0;
 
                     return DropdownMenuItem<String>(
@@ -159,7 +318,6 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 15),
 
-                // Wage
                 if (selectedLabour != null)
                   Container(
                     width: double.infinity,
@@ -196,7 +354,6 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 15),
 
-                // Number of labourers
                 TextField(
                   controller: labourController,
                   keyboardType: TextInputType.number,
@@ -211,7 +368,6 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 15),
 
-                // Total cost
                 if (selectedLabour != null && numberOfLabourers > 0)
                   Container(
                     width: double.infinity,
@@ -221,7 +377,8 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      "Estimated Cost: ₹${totalCost.toStringAsFixed(0)} / day",
+                      "Estimated Cost: ₹"
+                      "${totalCost.toStringAsFixed(0)} / day",
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -242,7 +399,6 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 15),
 
-                // Date
                 TextField(
                   controller: dateController,
                   readOnly: true,
@@ -254,33 +410,20 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
                   onTap: _selectDate,
                 ),
 
-                const SizedBox(height: 15),
-
-                // Mobile
-                TextField(
-                  controller: mobileController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: "Mobile Number",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-
                 const SizedBox(height: 25),
 
+                // Hire button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Labour request will be posted in the next step.",
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text("Hire Labour"),
+                    onPressed: isSubmitting ? null : _hireLabour,
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text("Hire Labour"),
                   ),
                 ),
               ],

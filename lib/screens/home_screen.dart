@@ -60,7 +60,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['labour_hiring'] ?? 'Labour Hiring',
         'icon': Icons.engineering,
-        'screen': const LabourHiringScreen(),
+        'screen': LabourHiringScreen(user: user),
       },
       {
         'title': lang['crop_reminder'] ?? 'Crop Reminder',
@@ -75,9 +75,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['voice_assistant'] ?? 'Voice Assistant',
         'icon': Icons.mic,
-        'screen': VoiceAssistantScreen(
-          user: user,
-        ),
+        'screen': VoiceAssistantScreen(user: user),
       },
       {
         'title': lang['marketplace'] ?? 'Marketplace',
@@ -226,15 +224,10 @@ class HomeScreen extends StatelessWidget {
             ),
 
             ListTile(
-              leading: const Icon(
-                Icons.shopping_bag,
-                color: Colors.green,
-              ),
+              leading: const Icon(Icons.shopping_bag, color: Colors.green),
               title: const Text(
                 'My Marketplace Orders',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -242,9 +235,7 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => MyMarketplaceOrdersScreen(
-                      user: user,
-                    ),
+                    builder: (_) => MyMarketplaceOrdersScreen(user: user),
                   ),
                 );
               },
