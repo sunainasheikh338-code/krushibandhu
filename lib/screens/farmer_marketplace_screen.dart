@@ -925,11 +925,10 @@ class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
             _marketplaceOrderInfoRow(Icons.person_outline, 'Buyer', buyerName),
 
             if (buyerMobile.isNotEmpty)
-              _marketplaceOrderInfoRow(
-                Icons.phone_outlined,
-                'Mobile',
-                buyerMobile,
-              ),
+              if ((status.toLowerCase().trim() == "completed" ||
+                      status.toLowerCase().trim() == "ready for pickup") &&
+                  buyerMobile.isNotEmpty)
+                _marketplaceOrderInfoRow(Icons.phone, "Mobile", buyerMobile),
 
             if (buyerVillage.isNotEmpty)
               _marketplaceOrderInfoRow(
