@@ -8,8 +8,7 @@ class FarmerMarketplaceScreen extends StatefulWidget {
       _FarmerMarketplaceScreenState();
 }
 
-class _FarmerMarketplaceScreenState
-    extends State<FarmerMarketplaceScreen> {
+class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
   final TextEditingController cropController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
@@ -57,51 +56,38 @@ class _FarmerMarketplaceScreenState
           children: [
             TextField(
               controller: cropController,
-              decoration: const InputDecoration(
-                labelText: "Crop Name",
-              ),
+              decoration: const InputDecoration(labelText: "Crop Name"),
             ),
             const SizedBox(height: 10),
 
             TextField(
               controller: quantityController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Quantity (kg)",
-              ),
+              decoration: const InputDecoration(labelText: "Quantity (kg)"),
             ),
             const SizedBox(height: 10),
 
             TextField(
               controller: priceController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Price per kg",
-              ),
+              decoration: const InputDecoration(labelText: "Price per kg"),
             ),
             const SizedBox(height: 10),
 
             TextField(
               controller: locationController,
-              decoration: const InputDecoration(
-                labelText: "Location",
-              ),
+              decoration: const InputDecoration(labelText: "Location"),
             ),
             const SizedBox(height: 10),
 
             TextField(
               controller: contactController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: "Contact Number",
-              ),
+              decoration: const InputDecoration(labelText: "Contact Number"),
             ),
             const SizedBox(height: 15),
 
-            ElevatedButton(
-              onPressed: addCrop,
-              child: const Text("Add Crop"),
-            ),
+            ElevatedButton(onPressed: addCrop, child: const Text("Add Crop")),
 
             const SizedBox(height: 20),
 
