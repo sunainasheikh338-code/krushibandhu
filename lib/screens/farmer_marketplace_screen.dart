@@ -9,112 +9,153 @@ class FarmerMarketplaceScreen extends StatefulWidget {
 }
 
 class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
-  final TextEditingController cropController = TextEditingController();
-  final TextEditingController quantityController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-  final TextEditingController contactController = TextEditingController();
+  final List<String> categories = [
+    'All',
+    'Grain',
+    'Vegetable',
+    'Fruit',
+    'Pulses',
+    'Oilseed',
+    'Sugarcane',
+    'Spices',
+    'Other',
+  ];
 
-  final List<Map<String, String>> crops = [];
-
-  void addCrop() {
-    if (cropController.text.isEmpty ||
-        quantityController.text.isEmpty ||
-        priceController.text.isEmpty ||
-        locationController.text.isEmpty ||
-        contactController.text.isEmpty) {
-      return;
-    }
-
-    setState(() {
-      crops.add({
-        "crop": cropController.text,
-        "quantity": quantityController.text,
-        "price": priceController.text,
-        "location": locationController.text,
-        "contact": contactController.text,
-      });
-
-      cropController.clear();
-      quantityController.clear();
-      priceController.clear();
-      locationController.clear();
-      contactController.clear();
-    });
-  }
+  String selectedCategory = 'All';
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Farmer Marketplace"),
-        backgroundColor: Colors.green,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Farmer Marketplace'),
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(icon: Icon(Icons.shopping_cart), text: 'BUY'),
+              Tab(icon: Icon(Icons.sell), text: 'SELL'),
+            ],
+          ),
+        ),
+        body: TabBarView(children: [_buildBuyTab(), _buildSellTab()]),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: cropController,
-              decoration: const InputDecoration(labelText: "Crop Name"),
+    );
+  }
+
+  // ================= BUY TAB =================
+
+  Widget _buildBuyTab() {
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+
+        // Category filter
+        SizedBox(
+          height: 45,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              final isSelected = selectedCategory == category;
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(category),
+                  selected: isSelected,
+                  selectedColor: Colors.green,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onSelected: (_) {
+                    setState(() {
+                      selectedCategory = category;
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.storefront, size: 70, color: Colors.green),
+                SizedBox(height: 12),
+                Text(
+                  'No products available',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'Products from other farmers will appear here.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
+          ),
+        ),
+      ],
+    );
+  }
 
-            TextField(
-              controller: quantityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Quantity (kg)"),
-            ),
-            const SizedBox(height: 10),
+  // ================= SELL TAB =================
 
-            TextField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Price per kg"),
-            ),
-            const SizedBox(height: 10),
+  Widget _buildSellTab() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
 
-            TextField(
-              controller: locationController,
-              decoration: const InputDecoration(labelText: "Location"),
-            ),
-            const SizedBox(height: 10),
+          const Icon(Icons.agriculture, size: 70, color: Colors.green),
 
-            TextField(
-              controller: contactController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: "Contact Number"),
-            ),
-            const SizedBox(height: 15),
+          const SizedBox(height: 15),
 
-            ElevatedButton(onPressed: addCrop, child: const Text("Add Crop")),
+          const Text(
+            'Sell Your Farm Products',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 8),
 
-            Expanded(
-              child: ListView.builder(
-                itemCount: crops.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.agriculture,
-                        color: Colors.green,
-                      ),
-                      title: Text(crops[index]["crop"]!),
-                      subtitle: Text(
-                        "Qty: ${crops[index]["quantity"]} kg\n"
-                        "Price: ₹${crops[index]["price"]}/kg\n"
-                        "Location: ${crops[index]["location"]}\n"
-                        "Contact: ${crops[index]["contact"]}",
-                      ),
-                    ),
-                  );
-                },
+          const Text(
+            'List your harvested crops or other farm products '
+            'and choose your own selling price.',
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 25),
+
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                // Step 2: Add selling form
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('List Product for Sale'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
