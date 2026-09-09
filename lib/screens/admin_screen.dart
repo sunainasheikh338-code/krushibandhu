@@ -4,6 +4,7 @@ import 'farmers_management_screen.dart';
 import 'admin_fertilizer_management_screen.dart';
 import 'login_screen.dart';
 import 'management_screen.dart';
+import 'admin_labour_requests_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -27,16 +28,11 @@ class AdminScreen extends StatelessWidget {
                 builder: (dialogContext) {
                   return AlertDialog(
                     title: const Text("Logout"),
-                    content: const Text(
-                      "Are you sure you want to logout?",
-                    ),
+                    content: const Text("Are you sure you want to logout?"),
                     actions: [
                       TextButton(
                         onPressed: () {
-                          Navigator.pop(
-                            dialogContext,
-                            false,
-                          );
+                          Navigator.pop(dialogContext, false);
                         },
                         child: const Text("Cancel"),
                       ),
@@ -46,10 +42,7 @@ class AdminScreen extends StatelessWidget {
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () {
-                          Navigator.pop(
-                            dialogContext,
-                            true,
-                          );
+                          Navigator.pop(dialogContext, true);
                         },
                         child: const Text("Logout"),
                       ),
@@ -68,10 +61,8 @@ class AdminScreen extends StatelessWidget {
 
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginScreen(),
-                ),
-                    (route) => false,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
               );
             },
           ),
@@ -84,9 +75,7 @@ class AdminScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.green,
-              ),
+              child: CircularProgressIndicator(color: Colors.green),
             );
           }
 
@@ -111,8 +100,7 @@ class AdminScreen extends StatelessWidget {
             final data = doc.data() as Map<String, dynamic>;
 
             final status =
-                data['status']?.toString().toLowerCase().trim() ??
-                    'pending';
+                data['status']?.toString().toLowerCase().trim() ?? 'pending';
 
             switch (status) {
               case 'pending':
@@ -144,30 +132,21 @@ class AdminScreen extends StatelessWidget {
               children: [
                 const Text(
                   "Welcome, Admin 👋",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 5),
 
                 const Text(
                   "Manage Krushi Bandhu activities",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 15, color: Colors.grey),
                 ),
 
                 const SizedBox(height: 25),
 
                 const Text(
                   "Fertilizer Order Summary",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 14),
@@ -223,10 +202,7 @@ class AdminScreen extends StatelessWidget {
 
                 const Text(
                   "Admin Modules",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 14),
@@ -240,20 +216,14 @@ class AdminScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     // FARMERS
-                    _buildCard(
-                      context,
-                      Icons.people,
-                      "Farmers",
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const FarmersManagementScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                    _buildCard(context, Icons.people, "Farmers", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FarmersManagementScreen(),
+                        ),
+                      );
+                    }),
 
                     // TRACTOR BOOKINGS
                     _buildCard(
@@ -302,26 +272,28 @@ class AdminScreen extends StatelessWidget {
                     //     );
                     //   },
                     // ),
-                    _buildCard(
-                      context,
-                      Icons.settings,
-                      "Management",
-                          () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ManagementScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                    _buildCard(context, Icons.settings, "Management", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ManagementScreen(),
+                        ),
+                      );
+                    }),
 
                     // LABOUR
                     _buildCard(
                       context,
                       Icons.engineering,
                       "Labour Requests",
-                      () {},
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdminLabourRequestsScreen(),
+                          ),
+                        );
+                      },
                     ),
 
                     // MARKETPLACE
@@ -333,12 +305,7 @@ class AdminScreen extends StatelessWidget {
                     // ),
 
                     // REPORTS
-                    _buildCard(
-                      context,
-                      Icons.analytics,
-                      "Reports",
-                      () {},
-                    ),
+                    _buildCard(context, Icons.analytics, "Reports", () {}),
                   ],
                 ),
 
@@ -359,22 +326,13 @@ class AdminScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 32,
-              color: color,
-            ),
+            Icon(icon, size: 32, color: color),
 
             const SizedBox(height: 5),
 
@@ -394,10 +352,7 @@ class AdminScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -413,30 +368,21 @@ class AdminScreen extends StatelessWidget {
   ) {
     return Card(
       elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 50,
-              color: Colors.green,
-            ),
+            Icon(icon, size: 50, color: Colors.green),
 
             const SizedBox(height: 12),
 
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -469,9 +415,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.green,
-              ),
+              child: CircularProgressIndicator(color: Colors.green),
             );
           }
 
@@ -491,10 +435,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
             return const Center(
               child: Text(
                 "No tractor bookings found.",
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
               ),
             );
           }
@@ -531,8 +472,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
 
               final data = doc.data() as Map<String, dynamic>;
 
-              final bookingId =
-                  data['bookingId']?.toString() ?? doc.id;
+              final bookingId = data['bookingId']?.toString() ?? doc.id;
 
               final farmerName =
                   data['farmerName']?.toString() ?? "Unknown Farmer";
@@ -540,8 +480,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
               final farmerPhone =
                   data['farmerPhone']?.toString() ?? "Not available";
 
-              final tractorName =
-                  data['tractorName']?.toString() ?? "Tractor";
+              final tractorName = data['tractorName']?.toString() ?? "Tractor";
 
               final tractorType =
                   data['tractorType']?.toString() ?? "Not specified";
@@ -549,11 +488,9 @@ class TractorBookingsAdminScreen extends StatelessWidget {
               final ownerName =
                   data['ownerName']?.toString() ?? "Unknown Owner";
 
-              final duration =
-                  data['duration']?.toString() ?? "0";
+              final duration = data['duration']?.toString() ?? "0";
 
-              final durationType =
-                  data['durationType']?.toString() ?? "";
+              final durationType = data['durationType']?.toString() ?? "";
 
               final rentalOption =
                   data['rentalOption']?.toString() ?? "Tractor Only";
@@ -576,8 +513,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
               final workLocation =
                   data['workLocation']?.toString() ?? "Not specified";
 
-              final totalAmount =
-                  _toDouble(data['totalAmount']);
+              final totalAmount = _toDouble(data['totalAmount']);
 
               final paymentMethod =
                   data['paymentMethod']?.toString() ?? "Not specified";
@@ -585,8 +521,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
               final paymentStatus =
                   data['paymentStatus']?.toString() ?? "Not specified";
 
-              final status =
-                  data['status']?.toString() ?? "Pending";
+              final status = data['status']?.toString() ?? "Pending";
 
               return Card(
                 elevation: 4,
@@ -603,18 +538,14 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                         children: [
                           const CircleAvatar(
                             backgroundColor: Color(0xFFE8F5E9),
-                            child: Icon(
-                              Icons.agriculture,
-                              color: Colors.green,
-                            ),
+                            child: Icon(Icons.agriculture, color: Colors.green),
                           ),
 
                           const SizedBox(width: 10),
 
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   bookingId,
@@ -646,18 +577,9 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                       //   "Booking ID",
                       //   bookingId,
                       // ),
+                      _detailRow(Icons.person, "Farmer", farmerName),
 
-                      _detailRow(
-                        Icons.person,
-                        "Farmer",
-                        farmerName,
-                      ),
-
-                      _detailRow(
-                        Icons.phone,
-                        "Phone",
-                        farmerPhone,
-                      ),
+                      _detailRow(Icons.phone, "Phone", farmerPhone),
 
                       _detailRow(
                         Icons.agriculture,
@@ -665,11 +587,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                         "$tractorName ($tractorType)",
                       ),
 
-                      _detailRow(
-                        Icons.person_outline,
-                        "Owner",
-                        ownerName,
-                      ),
+                      _detailRow(Icons.person_outline, "Owner", ownerName),
 
                       _detailRow(
                         Icons.timer_outlined,
@@ -677,11 +595,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                         "$duration $durationType",
                       ),
 
-                      _detailRow(
-                        Icons.groups,
-                        "Rental",
-                        rentalOption,
-                      ),
+                      _detailRow(Icons.groups, "Rental", rentalOption),
 
                       if (equipmentName != "No Equipment") ...[
                         _detailRow(
@@ -698,11 +612,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                       ],
 
                       if (labourIncluded) ...[
-                        _detailRow(
-                          Icons.engineering,
-                          "Labour",
-                          "Yes",
-                        ),
+                        _detailRow(Icons.engineering, "Labour", "Yes"),
 
                         _detailRow(
                           Icons.currency_rupee,
@@ -710,11 +620,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                           "₹${labourAmount.toStringAsFixed(2)}",
                         ),
                       ] else
-                        _detailRow(
-                          Icons.engineering,
-                          "Labour",
-                          "No",
-                        ),
+                        _detailRow(Icons.engineering, "Labour", "No"),
 
                       _detailRow(
                         Icons.calendar_today,
@@ -740,11 +646,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                         "₹${totalAmount.toStringAsFixed(2)}",
                       ),
 
-                      _detailRow(
-                        Icons.payment,
-                        "Payment",
-                        paymentMethod,
-                      ),
+                      _detailRow(Icons.payment, "Payment", paymentMethod),
 
                       _detailRow(
                         Icons.check_circle_outline,
@@ -756,16 +658,11 @@ class TractorBookingsAdminScreen extends StatelessWidget {
 
                       Row(
                         children: [
-                          const Icon(
-                            Icons.info,
-                            size: 18,
-                          ),
+                          const Icon(Icons.info, size: 18),
                           const SizedBox(width: 8),
                           const Text(
                             "Booking Status:",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(width: 8),
                           Container(
@@ -829,7 +726,6 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                       //     ],
                       //   ),
                       // ),
-
                       const SizedBox(height: 15),
 
                       SizedBox(
@@ -838,27 +734,18 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 13,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           icon: const Icon(Icons.edit),
                           label: const Text(
                             "Update Booking Status",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           onPressed: () {
-                            _showTractorStatusDialog(
-                              context,
-                              doc.id,
-                              status,
-                            );
+                            _showTractorStatusDialog(context, doc.id, status);
                           },
                         ),
                       ),
@@ -873,21 +760,13 @@ class TractorBookingsAdminScreen extends StatelessWidget {
     );
   }
 
-  static Widget _detailRow(
-    IconData icon,
-    String title,
-    String value,
-  ) {
+  static Widget _detailRow(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 9),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: Colors.green,
-          ),
+          Icon(icon, size: 20, color: Colors.green),
 
           const SizedBox(width: 10),
 
@@ -895,19 +774,12 @@ class TractorBookingsAdminScreen extends StatelessWidget {
             width: 105,
             child: Text(
               "$title:",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
 
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.black87,
-              ),
-            ),
+            child: Text(value, style: const TextStyle(color: Colors.black87)),
           ),
         ],
       ),
@@ -919,10 +791,7 @@ class TractorBookingsAdminScreen extends StatelessWidget {
       return value.toDouble();
     }
 
-    return double.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        0;
+    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   static void _showTractorStatusDialog(
@@ -944,16 +813,13 @@ class TractorBookingsAdminScreen extends StatelessWidget {
         return AlertDialog(
           title: const Text(
             "Update Booking Status",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: statuses.map((status) {
               final isSelected =
-                  currentStatus.toLowerCase() ==
-                      status.toLowerCase();
+                  currentStatus.toLowerCase() == status.toLowerCase();
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -983,50 +849,36 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                     Navigator.pop(dialogContext);
 
                     try {
-                      final bookingRef = FirebaseFirestore
-                          .instance
+                      final bookingRef = FirebaseFirestore.instance
                           .collection('tractor_bookings')
                           .doc(documentId);
 
-                      final bookingDoc =
-                      await bookingRef.get();
+                      final bookingDoc = await bookingRef.get();
 
                       if (!bookingDoc.exists) {
-                        throw Exception(
-                          'Booking not found.',
-                        );
+                        throw Exception('Booking not found.');
                       }
 
-                      final bookingData =
-                      bookingDoc.data();
+                      final bookingData = bookingDoc.data();
 
                       if (bookingData == null) {
-                        throw Exception(
-                          'Booking data is empty.',
-                        );
+                        throw Exception('Booking data is empty.');
                       }
 
                       final tractorId =
-                          bookingData['tractorId']
-                              ?.toString() ??
-                              '';
+                          bookingData['tractorId']?.toString() ?? '';
 
                       if (tractorId.isEmpty) {
-                        throw Exception(
-                          'Tractor ID not found in booking.',
-                        );
+                        throw Exception('Tractor ID not found in booking.');
                       }
 
-                      final tractorRef = FirebaseFirestore
-                          .instance
+                      final tractorRef = FirebaseFirestore.instance
                           .collection('tractor_listings')
                           .doc(tractorId);
 
-                      final bookingUpdate =
-                      <String, dynamic>{
+                      final bookingUpdate = <String, dynamic>{
                         'status': status,
-                        'updatedAt':
-                        FieldValue.serverTimestamp(),
+                        'updatedAt': FieldValue.serverTimestamp(),
                       };
 
                       if (status == 'Confirmed') {
@@ -1049,42 +901,27 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                             FieldValue.serverTimestamp();
                       }
 
-                      await bookingRef.update(
-                        bookingUpdate,
-                      );
+                      await bookingRef.update(bookingUpdate);
 
-                      if (status == 'Cancelled' ||
-                          status == 'Completed') {
-
-                        await tractorRef.set(
-                          {
-                            'isAvailable': true,
-                            'currentBookingId':
-                            FieldValue.delete(),
-                            'updatedAt':
-                            FieldValue.serverTimestamp(),
-                          },
-                          SetOptions(merge: true),
-                        );
+                      if (status == 'Cancelled' || status == 'Completed') {
+                        await tractorRef.set({
+                          'isAvailable': true,
+                          'currentBookingId': FieldValue.delete(),
+                          'updatedAt': FieldValue.serverTimestamp(),
+                        }, SetOptions(merge: true));
                       } else {
-                        await tractorRef.set(
-                          {
-                            'isAvailable': false,
-                            'currentBookingId': documentId,
-                            'updatedAt':
-                            FieldValue.serverTimestamp(),
-                          },
-                          SetOptions(merge: true),
-                        );
+                        await tractorRef.set({
+                          'isAvailable': false,
+                          'currentBookingId': documentId,
+                          'updatedAt': FieldValue.serverTimestamp(),
+                        }, SetOptions(merge: true));
                       }
 
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              status == 'Cancelled' ||
-                                  status == 'Completed'
+                              status == 'Cancelled' || status == 'Completed'
                                   ? 'Booking status updated to $status. Tractor is now available.'
                                   : 'Booking status updated to $status. Tractor remains unavailable.',
                             ),
@@ -1094,12 +931,9 @@ class TractorBookingsAdminScreen extends StatelessWidget {
                       }
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                              "Failed to update status: $e",
-                            ),
+                            content: Text("Failed to update status: $e"),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -1165,12 +999,9 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
             .collection('fertilizer_bookings')
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.green,
-              ),
+              child: CircularProgressIndicator(color: Colors.green),
             );
           }
 
@@ -1186,15 +1017,11 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
             );
           }
 
-          if (!snapshot.hasData ||
-              snapshot.data!.docs.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
               child: Text(
                 "No fertilizer orders found.",
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
               ),
             );
           }
@@ -1207,66 +1034,50 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final doc = orders[index];
 
-              final data =
-                  doc.data() as Map<String, dynamic>;
+              final data = doc.data() as Map<String, dynamic>;
 
-              final bookingId =
-                  data['bookingId']?.toString() ?? doc.id;
+              final bookingId = data['bookingId']?.toString() ?? doc.id;
 
               final farmerName =
-                  data['farmerName']?.toString() ??
-                      "Unknown Farmer";
+                  data['farmerName']?.toString() ?? "Unknown Farmer";
 
               final fertilizer =
-                  data['fertilizer']?.toString() ??
-                      "Not specified";
+                  data['fertilizer']?.toString() ?? "Not specified";
 
-              final quantity =
-                  data['quantity']?.toString() ?? "0";
+              final quantity = data['quantity']?.toString() ?? "0";
 
               final bookingType =
-                  data['bookingType']?.toString() ??
-                      "Not specified";
+                  data['bookingType']?.toString() ?? "Not specified";
 
               final bookingDate =
-                  data['bookingDate']?.toString() ??
-                      "Not specified";
+                  data['bookingDate']?.toString() ?? "Not specified";
 
               final bookingTime =
-                  data['bookingTime']?.toString() ??
-                      "Not specified";
+                  data['bookingTime']?.toString() ?? "Not specified";
 
               final phone =
                   data['phone']?.toString() ??
-                      data['farmerPhone']?.toString() ??
-                      "Not available";
+                  data['farmerPhone']?.toString() ??
+                  "Not available";
 
-              final totalAmount =
-                  data['totalAmount']?.toString() ?? "0";
+              final totalAmount = data['totalAmount']?.toString() ?? "0";
 
-              final status =
-                  data['status']?.toString() ?? "Pending";
+              final status = data['status']?.toString() ?? "Pending";
 
               return Card(
                 elevation: 4,
-                margin: const EdgeInsets.only(
-                  bottom: 15,
-                ),
+                margin: const EdgeInsets.only(bottom: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(
-                            Icons.receipt_long,
-                            color: Colors.green,
-                          ),
+                          const Icon(Icons.receipt_long, color: Colors.green),
 
                           const SizedBox(width: 8),
 
@@ -1275,8 +1086,7 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
                               bookingId,
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight:
-                                    FontWeight.bold,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -1342,38 +1152,31 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: _fertilizerStatusColor(status)
-                              .withOpacity(0.12),
-                          borderRadius:
-                              BorderRadius.circular(12),
+                          color: _fertilizerStatusColor(
+                            status,
+                          ).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.info_outline,
-                              color:
-                                  _fertilizerStatusColor(status),
+                              color: _fertilizerStatusColor(status),
                             ),
 
                             const SizedBox(width: 10),
 
                             const Text(
                               "Order Status: ",
-                              style: TextStyle(
-                                fontWeight:
-                                    FontWeight.w600,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.w600),
                             ),
 
                             Expanded(
                               child: Text(
                                 status,
                                 style: TextStyle(
-                                  color:
-                                      _fertilizerStatusColor(
-                                          status),
-                                  fontWeight:
-                                      FontWeight.bold,
+                                  color: _fertilizerStatusColor(status),
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -1386,17 +1189,12 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          style:
-                              ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.green,
-                            foregroundColor:
-                                Colors.white,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
                           ),
                           icon: const Icon(Icons.edit),
-                          label: const Text(
-                            "Update Order Status",
-                          ),
+                          label: const Text("Update Order Status"),
                           onPressed: () {
                             _showFertilizerStatusDialog(
                               context,
@@ -1436,16 +1234,13 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
         return AlertDialog(
           title: const Text(
             "Update Order Status",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: statuses.map((status) {
               final isSelected =
-                  currentStatus.toLowerCase() ==
-                      status.toLowerCase();
+                  currentStatus.toLowerCase() == status.toLowerCase();
 
               return ListTile(
                 leading: Icon(
@@ -1460,8 +1255,7 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
                     fontWeight: isSelected
                         ? FontWeight.bold
                         : FontWeight.normal,
-                    color:
-                        _fertilizerStatusColor(status),
+                    color: _fertilizerStatusColor(status),
                   ),
                 ),
                 onTap: () async {
@@ -1472,30 +1266,23 @@ class FertilizerOrdersAdminScreen extends StatelessWidget {
                         .collection('fertilizer_bookings')
                         .doc(documentId)
                         .update({
-                      'status': status,
-                      'updatedAt':
-                          FieldValue.serverTimestamp(),
-                    });
+                          'status': status,
+                          'updatedAt': FieldValue.serverTimestamp(),
+                        });
 
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            "Order updated to $status",
-                          ),
+                          content: Text("Order updated to $status"),
                           backgroundColor: Colors.green,
                         ),
                       );
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            "Failed to update: $e",
-                          ),
+                          content: Text("Failed to update: $e"),
                           backgroundColor: Colors.red,
                         ),
                       );
