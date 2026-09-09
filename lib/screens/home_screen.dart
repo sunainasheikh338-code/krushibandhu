@@ -190,7 +190,7 @@ class HomeScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.receipt_long, color: Colors.green),
               title: const Text(
-                'My Bookings',
+                'My Fertilizer Bookings',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               onTap: () {

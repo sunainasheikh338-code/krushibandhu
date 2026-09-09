@@ -388,7 +388,6 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 15),
 
-                // Village
                 TextField(
                   controller: villageController,
                   decoration: const InputDecoration(
@@ -412,11 +411,14 @@ class _LabourHiringScreenState extends State<LabourHiringScreen> {
 
                 const SizedBox(height: 25),
 
-                // Hire button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: isSubmitting ? null : _hireLabour,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
                     child: isSubmitting
                         ? const SizedBox(
                             width: 22,
