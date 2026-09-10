@@ -71,6 +71,10 @@ class _LeftoverFertilizerSellingScreenState
     return (widget.user["village"] ?? "").toString().trim();
   }
 
+  String get farmerId {
+    return (widget.user["id"] ?? "").toString().trim();
+  }
+
   double get sellingPrice {
     return _originalPrice * 0.80;
   }
@@ -236,7 +240,6 @@ class _LeftoverFertilizerSellingScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Row(
               children: [
                 Container(
@@ -519,12 +522,7 @@ class _LeftoverFertilizerSellingScreenState
     int quantity,
   ) async {
     try {
-      final buyerId =
-          (widget.user["uid"] ??
-                  widget.user["userId"] ??
-                  widget.user["id"] ??
-                  "")
-              .toString();
+      final buyerId = (widget.user["id"] ?? "").toString();
 
       final buyerName = (widget.user["name"] ?? "").toString();
 
@@ -533,7 +531,6 @@ class _LeftoverFertilizerSellingScreenState
       final orderRef = _firestore.collection("leftover_orders").doc();
 
       await _firestore.runTransaction((transaction) async {
-
         final listingSnapshot = await transaction.get(listingRef);
 
         if (!listingSnapshot.exists) {
@@ -919,6 +916,19 @@ class _LeftoverFertilizerSellingScreenState
               ),
             ),
 
+          // const SizedBox(height: 28),
+          //
+          // const Divider(),
+          //
+          // const SizedBox(height: 20),
+          //
+          // // ------------------------------------------------------
+          // // SELL NEW FERTILIZER
+          // // ------------------------------------------------------
+          // const Text(
+          //   "Sell More Fertilizer",
+          //   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          // ),
           const SizedBox(height: 28),
 
           const Divider(),
@@ -942,6 +952,556 @@ class _LeftoverFertilizerSellingScreenState
             _buildNoRemainingInventory()
           else
             _buildSellForm(availableMap, fertilizerNames),
+
+          const SizedBox(height: 28),
+
+          const Divider(),
+
+          const SizedBox(height: 20),
+
+          // ------------------------------------------------------
+          // ORDERS FOR MY LISTINGS
+          // ------------------------------------------------------
+          const Text(
+            "Orders for My Listings",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 12),
+
+          _buildSellerOrders(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSellerOrders() {
+    if (farmerId.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Text("Farmer ID not found."),
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _firestore
+          .collection("leftover_orders")
+          .where("sellerId", isEqualTo: farmerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(color: Colors.green),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return _buildError(
+            "Unable to load marketplace orders.",
+            snapshot.error.toString(),
+          );
+        }
+
+        final orders = snapshot.data?.docs ?? [];
+
+        if (orders.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "No one has ordered your leftover fertilizers yet.",
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final sortedOrders = [...orders];
+
+        sortedOrders.sort((a, b) {
+          final aTime = a.data()["createdAt"];
+          final bTime = b.data()["createdAt"];
+
+          if (aTime is Timestamp && bTime is Timestamp) {
+            return bTime.compareTo(aTime);
+          }
+
+          return 0;
+        });
+
+        return Column(
+          children: sortedOrders.map((doc) {
+            return _buildSellerOrderCard(doc);
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildSellerOrderCard(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+
+    final orderId = (data["orderId"] ?? doc.id).toString();
+
+    final buyerName = (data["buyerName"] ?? "Unknown Buyer").toString();
+
+    final fertilizerName = (data["fertilizerName"] ?? "Unknown Fertilizer")
+        .toString();
+
+    final quantity = (data["quantity"] as num?)?.toInt() ?? 0;
+
+    final pricePerBag = (data["pricePerBag"] as num?)?.toDouble() ?? 0;
+
+    final totalAmount = (data["totalAmount"] as num?)?.toDouble() ?? 0;
+
+    final status = (data["status"] ?? "Pending").toString();
+
+    final createdAt = data["createdAt"];
+
+    String date = "Date not available";
+
+    if (createdAt is Timestamp) {
+      final d = createdAt.toDate();
+
+      date =
+          "${d.day.toString().padLeft(2, '0')}/"
+          "${d.month.toString().padLeft(2, '0')}/"
+          "${d.year}";
+    }
+
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.shopping_bag, color: Colors.green),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fertilizerName,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      Text(
+                        "Order: $orderId",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                _sellerStatusChip(status),
+              ],
+            ),
+
+            const Divider(height: 25),
+
+            _sellerOrderDetail(Icons.person_outline, "Buyer", buyerName),
+
+            _sellerOrderDetail(
+              Icons.inventory_2_outlined,
+              "Quantity",
+              "$quantity Bags",
+            ),
+
+            _sellerOrderDetail(
+              Icons.currency_rupee,
+              "Price / Bag",
+              "₹${pricePerBag.toStringAsFixed(2)}",
+            ),
+
+            _sellerOrderDetail(
+              Icons.payments_outlined,
+              "Total Amount",
+              "₹${totalAmount.toStringAsFixed(2)}",
+            ),
+
+            _sellerOrderDetail(
+              Icons.calendar_today_outlined,
+              "Order Date",
+              date,
+            ),
+
+            const SizedBox(height: 8),
+
+            _buildSellerOrderActions(orderId: orderId, status: status),
+
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSellerOrderActions({
+    required String orderId,
+    required String status,
+  }) {
+    if (status == "Pending") {
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                _updateSellerOrderStatus(orderId, "Confirmed");
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Confirm"),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {
+                _showCancelSellerOrderDialog(orderId);
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+              ),
+              child: const Text("Cancel"),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (status == "Confirmed") {
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                _updateSellerOrderStatus(orderId, "Ready for Pickup");
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+
+              child: const Text("Ready for Pickup"),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                _updateSellerOrderStatus(orderId, "Out for Delivery");
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+
+              child: const Text("Out for Delivery"),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (status == "Ready for Pickup") {
+      return const SizedBox.shrink();
+    }
+
+    if (status == "Out for Delivery") {
+      return const SizedBox.shrink();
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Future<void> _updateSellerOrderStatus(
+    String orderId,
+    String newStatus,
+  ) async {
+    try {
+      final orderRef = _firestore.collection("leftover_orders").doc(orderId);
+
+      final orderSnapshot = await orderRef.get();
+
+      if (!orderSnapshot.exists) {
+        throw Exception("Order not found.");
+      }
+
+      final data = orderSnapshot.data() as Map<String, dynamic>;
+
+      final currentStatus = (data["status"] ?? "").toString();
+
+      bool validTransition = false;
+
+      if (newStatus == "Confirmed" && currentStatus == "Pending") {
+        validTransition = true;
+      }
+
+      if ((newStatus == "Ready for Pickup" ||
+              newStatus == "Out for Delivery") &&
+          currentStatus == "Confirmed") {
+        validTransition = true;
+      }
+
+      if (newStatus == "Completed" &&
+          (currentStatus == "Ready for Pickup" ||
+              currentStatus == "Out for Delivery")) {
+        validTransition = true;
+      }
+
+      if (!validTransition) {
+        throw Exception(
+          "This order cannot be changed from $currentStatus to $newStatus.",
+        );
+      }
+
+      await orderRef.update({
+        "status": newStatus,
+        "updatedAt": FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Order status updated to $newStatus")),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to update order: $e")));
+    }
+  }
+
+  Future<void> _showCancelSellerOrderDialog(String orderId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Cancel Order?"),
+          content: const Text(
+            "Are you sure you want to cancel this order? "
+            "The ordered bags will be returned to your listing.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("No"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text("Yes, Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await _cancelSellerOrder(orderId);
+    }
+  }
+
+  Future<void> _cancelSellerOrder(String orderId) async {
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final orderRef = _firestore.collection("leftover_orders").doc(orderId);
+
+        final orderSnapshot = await transaction.get(orderRef);
+
+        if (!orderSnapshot.exists) {
+          throw Exception("Order not found.");
+        }
+
+        final orderData = orderSnapshot.data() as Map<String, dynamic>;
+
+        final currentStatus = (orderData["status"] ?? "").toString();
+
+        if (currentStatus != "Pending") {
+          throw Exception("Only Pending orders can be cancelled.");
+        }
+
+        final listingId = (orderData["listingId"] ?? "").toString();
+
+        final quantity = (orderData["quantity"] ?? 0) as num;
+
+        if (listingId.isEmpty) {
+          throw Exception("Marketplace listing not found.");
+        }
+
+        final listingRef = _firestore
+            .collection("leftover_fertilizers")
+            .doc(listingId);
+
+        final listingSnapshot = await transaction.get(listingRef);
+
+        if (!listingSnapshot.exists) {
+          throw Exception("The original marketplace listing no longer exists.");
+        }
+
+        final listingData = listingSnapshot.data() as Map<String, dynamic>;
+
+        final currentAvailable = (listingData["availableQuantity"] ?? 0) as num;
+
+        final restoredQuantity = currentAvailable + quantity;
+
+        transaction.update(listingRef, {
+          "availableQuantity": restoredQuantity,
+          "status": "Available",
+          "updatedAt": FieldValue.serverTimestamp(),
+        });
+
+        transaction.update(orderRef, {
+          "status": "Cancelled",
+          "updatedAt": FieldValue.serverTimestamp(),
+        });
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Order cancelled and bags restored to your listing."),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to cancel order: $e")));
+    }
+  }
+
+  Widget _sellerOrderDetail(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 19, color: Colors.green),
+          const SizedBox(width: 9),
+          SizedBox(
+            width: 100,
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: Text(value, style: TextStyle(color: Colors.grey.shade700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sellerStatusChip(String status) {
+    final normalized = status.toLowerCase().trim();
+
+    Color color;
+    IconData icon;
+
+    switch (normalized) {
+      case "confirmed":
+        color = Colors.blue;
+        icon = Icons.check_circle_outline;
+        break;
+
+      case "ready for pickup":
+        color = Colors.orange;
+        icon = Icons.inventory_2_outlined;
+        break;
+
+      case "out for delivery":
+        color = Colors.deepOrange;
+        icon = Icons.local_shipping_outlined;
+        break;
+
+      case "completed":
+        color = Colors.green;
+        icon = Icons.task_alt;
+        break;
+
+      case "cancelled":
+        color = Colors.red;
+        icon = Icons.cancel_outlined;
+        break;
+
+      default:
+        color = Colors.grey;
+        icon = Icons.pending_actions;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 4),
+          Text(
+            status,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -1480,12 +2040,7 @@ class _LeftoverFertilizerSellingScreenState
       final listingData = <String, dynamic>{
         "listingId": listingId,
 
-        "sellerId":
-            (widget.user["uid"] ??
-                    widget.user["userId"] ??
-                    widget.user["id"] ??
-                    "")
-                .toString(),
+        "sellerId": (widget.user["id"] ?? "").toString(),
 
         "sellerName": farmerName,
 

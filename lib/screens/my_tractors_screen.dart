@@ -6,24 +6,17 @@ import 'tractor_booking_screen.dart';
 class MyTractorsScreen extends StatefulWidget {
   final Map<String, dynamic> user;
 
-  const MyTractorsScreen({
-    super.key,
-    required this.user,
-  });
+  const MyTractorsScreen({super.key, required this.user});
 
   @override
-  State<MyTractorsScreen> createState() =>
-      _MyTractorsScreenState();
+  State<MyTractorsScreen> createState() => _MyTractorsScreenState();
 }
 
 class _MyTractorsScreenState extends State<MyTractorsScreen> {
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String get userId {
-    return widget.user['uid']?.toString() ??
-        widget.user['userId']?.toString() ??
-        '';
+    return widget.user['id']?.toString() ?? '';
   }
 
   String get userName {
@@ -37,24 +30,16 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
       return value.toDouble();
     }
 
-    return double.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        0;
+    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
-  Future<void> _deleteTractor(
-    String documentId,
-    String tractorName,
-  ) async {
+  Future<void> _deleteTractor(String documentId, String tractorName) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Delete Tractor'),
-          content: Text(
-            'Are you sure you want to delete "$tractorName"?',
-          ),
+          content: Text('Are you sure you want to delete "$tractorName"?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -80,18 +65,13 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
     if (confirm != true) return;
 
     try {
-      await _firestore
-          .collection('tractor_listings')
-          .doc(documentId)
-          .delete();
+      await _firestore.collection('tractor_listings').doc(documentId).delete();
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Tractor deleted successfully.',
-          ),
+          content: Text('Tractor deleted successfully.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -100,9 +80,7 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Failed to delete tractor: $e',
-          ),
+          content: Text('Failed to delete tractor: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -120,18 +98,11 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
         foregroundColor: Colors.white,
       ),
       body: userId.isEmpty
-          ? const Center(
-              child: Text(
-                'User information not available.',
-              ),
-            )
+          ? const Center(child: Text('User information not available.'))
           : StreamBuilder<QuerySnapshot>(
               stream: _firestore
                   .collection('tractor_listings')
-                  .where(
-                    'ownerId',
-                    isEqualTo: userId,
-                  )
+                  .where('ownerId', isEqualTo: userId)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -146,17 +117,13 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                   );
                 }
 
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.green,
-                    ),
+                    child: CircularProgressIndicator(color: Colors.green),
                   );
                 }
 
-                final tractors =
-                    snapshot.data?.docs ?? [];
+                final tractors = snapshot.data?.docs ?? [];
 
                 if (tractors.isEmpty) {
                   return _emptyView();
@@ -168,13 +135,9 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                   itemBuilder: (context, index) {
                     final document = tractors[index];
 
-                    final data = document.data()
-                        as Map<String, dynamic>;
+                    final data = document.data() as Map<String, dynamic>;
 
-                    return _tractorCard(
-                      document.id,
-                      data,
-                    );
+                    return _tractorCard(document.id, data);
                   },
                 );
               },
@@ -182,61 +145,42 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
     );
   }
 
-  Widget _tractorCard(
-    String documentId,
-    Map<String, dynamic> tractor,
-  ) {
-    final tractorName =
-        tractor['tractorName']?.toString() ??
-            'Tractor';
+  Widget _tractorCard(String documentId, Map<String, dynamic> tractor) {
+    final tractorName = tractor['tractorName']?.toString() ?? 'Tractor';
 
-    final tractorType =
-        tractor['tractorType']?.toString() ??
-            'Not specified';
+    final tractorType = tractor['tractorType']?.toString() ?? 'Not specified';
 
-    final village =
-        tractor['village']?.toString() ??
-            'Location not available';
+    final village = tractor['village']?.toString() ?? 'Location not available';
 
     final mobile =
         tractor['mobile']?.toString() ??
-            tractor['ownerPhone']?.toString() ??
-            '';
+        tractor['ownerPhone']?.toString() ??
+        '';
 
-    final pricePerHour =
-        _toDouble(tractor['pricePerHour']);
+    final pricePerHour = _toDouble(tractor['pricePerHour']);
 
-    final pricePerDay =
-        _toDouble(tractor['pricePerDay']);
+    final pricePerDay = _toDouble(tractor['pricePerDay']);
 
-    final imageUrl =
-        tractor['imageUrl']?.toString() ?? '';
+    final imageUrl = tractor['imageUrl']?.toString() ?? '';
 
-    final labourAvailable =
-        tractor['labourAvailable'] == true;
+    final labourAvailable = tractor['labourAvailable'] == true;
 
-    final labourCharge =
-        _toDouble(tractor['labourCharge']);
+    final labourCharge = _toDouble(tractor['labourCharge']);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                   child: SizedBox(
                     width: 90,
                     height: 90,
@@ -244,9 +188,7 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                         ? Image.network(
                             imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder:
-                                (_, __, ___) =>
-                                    _imagePlaceholder(),
+                            errorBuilder: (_, __, ___) => _imagePlaceholder(),
                           )
                         : _imagePlaceholder(),
                   ),
@@ -256,15 +198,13 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         tractorName,
                         style: const TextStyle(
                           fontSize: 19,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
@@ -273,26 +213,18 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                       Text(
                         tractorType,
                         style: TextStyle(
-                          color:
-                              Colors.green.shade700,
-                          fontWeight:
-                              FontWeight.w600,
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
 
                       const SizedBox(height: 7),
 
-                      _infoRow(
-                        Icons.location_on_outlined,
-                        village,
-                      ),
+                      _infoRow(Icons.location_on_outlined, village),
 
                       if (mobile.isNotEmpty) ...[
                         const SizedBox(height: 5),
-                        _infoRow(
-                          Icons.phone_outlined,
-                          mobile,
-                        ),
+                        _infoRow(Icons.phone_outlined, mobile),
                       ],
                     ],
                   ),
@@ -332,24 +264,17 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.orange.shade50,
-                  borderRadius:
-                      BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.groups,
-                      color: Colors.orange,
-                    ),
+                    const Icon(Icons.groups, color: Colors.orange),
 
                     const SizedBox(width: 10),
 
                     Text(
                       'Labour Available • ₹${labourCharge.toStringAsFixed(0)} / day',
-                      style: const TextStyle(
-                        fontWeight:
-                            FontWeight.w600,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -363,28 +288,21 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      final tractorData =
-                          Map<String, dynamic>.from(
-                        tractor,
-                      );
+                      final tractorData = Map<String, dynamic>.from(tractor);
 
-                      tractorData['documentId'] =
-                          documentId;
+                      tractorData['documentId'] = documentId;
 
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              TractorBookingScreen(
+                          builder: (_) => TractorBookingScreen(
                             tractor: tractorData,
                             user: widget.user,
                           ),
                         ),
                       );
                     },
-                    icon: const Icon(
-                      Icons.calendar_month,
-                    ),
+                    icon: const Icon(Icons.calendar_month),
                     label: const Text('Book'),
                   ),
                 ),
@@ -394,15 +312,9 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
                 IconButton(
                   tooltip: 'Delete Tractor',
                   onPressed: () {
-                    _deleteTractor(
-                      documentId,
-                      tractorName,
-                    );
+                    _deleteTractor(documentId, tractorName);
                   },
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.red,
-                  ),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
                 ),
               ],
             ),
@@ -415,71 +327,36 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
   Widget _imagePlaceholder() {
     return Container(
       color: Colors.green.shade50,
-      child: const Icon(
-        Icons.agriculture,
-        color: Colors.green,
-        size: 45,
-      ),
+      child: const Icon(Icons.agriculture, color: Colors.green, size: 45),
     );
   }
 
-  Widget _infoRow(
-    IconData icon,
-    String text,
-  ) {
+  Widget _infoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Colors.grey,
-        ),
+        Icon(icon, size: 16, color: Colors.grey),
         const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-            ),
-          ),
-        ),
+        Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
       ],
     );
   }
 
-  Widget _priceBox(
-    String title,
-    String price,
-    IconData icon,
-  ) {
+  Widget _priceBox(String title, String price, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.green.shade50,
-        borderRadius:
-            BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: Colors.green,
-          ),
+          Icon(icon, color: Colors.green),
           const SizedBox(height: 5),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 3),
           Text(
             price,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ],
       ),
@@ -501,18 +378,13 @@ class _MyTractorsScreenState extends State<MyTractorsScreen> {
             const SizedBox(height: 18),
             const Text(
               'No Tractors Found',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               'The tractors you add for rental will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-              ),
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),

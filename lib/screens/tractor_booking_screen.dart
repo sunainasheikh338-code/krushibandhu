@@ -14,19 +14,15 @@ class TractorBookingScreen extends StatefulWidget {
   });
 
   @override
-  State<TractorBookingScreen> createState() =>
-      _TractorBookingScreenState();
+  State<TractorBookingScreen> createState() => _TractorBookingScreenState();
 }
 
 class _TractorBookingScreenState extends State<TractorBookingScreen> {
-  final TextEditingController durationController =
-      TextEditingController();
+  final TextEditingController durationController = TextEditingController();
 
-  final TextEditingController addressController =
-      TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String durationType = 'Per Hour';
   bool withLabour = false;
@@ -50,10 +46,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
   double _toDouble(dynamic value) {
     if (value is num) return value.toDouble();
 
-    return double.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        0;
+    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   String get tractorId {
@@ -63,18 +56,15 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
   }
 
   String get tractorName {
-    return widget.tractor['tractorName']?.toString() ??
-        'Tractor';
+    return widget.tractor['tractorName']?.toString() ?? 'Tractor';
   }
 
   String get tractorType {
-    return widget.tractor['tractorType']?.toString() ??
-        'Tractor';
+    return widget.tractor['tractorType']?.toString() ?? 'Tractor';
   }
 
   String get ownerName {
-    return widget.tractor['ownerName']?.toString() ??
-        'Owner';
+    return widget.tractor['ownerName']?.toString() ?? 'Owner';
   }
 
   String get ownerMobile {
@@ -84,8 +74,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
   }
 
   String get village {
-    return widget.tractor['village']?.toString() ??
-        'Location not available';
+    return widget.tractor['village']?.toString() ?? 'Location not available';
   }
 
   String get imageUrl {
@@ -122,16 +111,11 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
   }
 
   String get farmerId {
-    return widget.user['id']?.toString() ??
-        widget.user['userId']?.toString() ??
-        '';
+    return widget.user['id']?.toString() ?? '';
   }
 
   double get duration {
-    return double.tryParse(
-          durationController.text.trim(),
-        ) ??
-        0;
+    return double.tryParse(durationController.text.trim()) ?? 0;
   }
 
   double get tractorAmount {
@@ -180,11 +164,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate ?? today,
-      firstDate: DateTime(
-        today.year,
-        today.month,
-        today.day,
-      ),
+      firstDate: DateTime(today.year, today.month, today.day),
       lastDate: DateTime(today.year + 1),
     );
 
@@ -210,50 +190,32 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
   Future<void> _bookTractor() async {
     if (duration <= 0) {
-      _showMessage(
-        'Please enter a valid rental duration.',
-        Colors.red,
-      );
+      _showMessage('Please enter a valid rental duration.', Colors.red);
       return;
     }
 
     if (selectedDate == null) {
-      _showMessage(
-        'Please select booking date.',
-        Colors.red,
-      );
+      _showMessage('Please select booking date.', Colors.red);
       return;
     }
 
     if (selectedTime == null) {
-      _showMessage(
-        'Please select booking time.',
-        Colors.red,
-      );
+      _showMessage('Please select booking time.', Colors.red);
       return;
     }
 
     if (addressController.text.trim().isEmpty) {
-      _showMessage(
-        'Please enter work location.',
-        Colors.red,
-      );
+      _showMessage('Please enter work location.', Colors.red);
       return;
     }
 
     if (tractorId.isEmpty) {
-      _showMessage(
-        'Invalid tractor listing.',
-        Colors.red,
-      );
+      _showMessage('Invalid tractor listing.', Colors.red);
       return;
     }
 
     if (totalAmount <= 0) {
-      _showMessage(
-        'Unable to calculate booking amount.',
-        Colors.red,
-      );
+      _showMessage('Unable to calculate booking amount.', Colors.red);
       return;
     }
 
@@ -269,8 +231,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       PaymentResult? paymentResult;
 
       if (paymentMethod == 'Cash on Delivery') {
-        paymentResult =
-            await PaymentService.instance.processPayment(
+        paymentResult = await PaymentService.instance.processPayment(
           context: context,
           method: PaymentMethod.cashOnDelivery,
           amount: totalAmount,
@@ -279,8 +240,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
           farmerPhone: farmerMobile,
         );
       } else {
-        paymentResult =
-            await PaymentService.instance.processPayment(
+        paymentResult = await PaymentService.instance.processPayment(
           context: context,
           method: PaymentMethod.onlinePayment,
           amount: totalAmount,
@@ -297,10 +257,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
           isBooking = false;
         });
 
-        _showMessage(
-          'Payment was not completed.',
-          Colors.orange,
-        );
+        _showMessage('Payment was not completed.', Colors.orange);
 
         return;
       }
@@ -312,10 +269,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
           isBooking = false;
         });
 
-        _showMessage(
-          paymentResult.message,
-          Colors.red,
-        );
+        _showMessage(paymentResult.message, Colors.red);
         return;
       }
 
@@ -356,8 +310,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         'tractorType': tractorType,
         'tractorImageUrl': imageUrl,
 
-        'ownerId':
-            widget.tractor['ownerId']?.toString() ?? '',
+        'ownerId': widget.tractor['ownerId']?.toString() ?? '',
 
         'ownerName': ownerName,
         'ownerPhone': ownerMobile,
@@ -366,9 +319,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         'duration': duration,
         'durationType': durationType,
 
-        'rentalOption': withLabour
-            ? 'Tractor with Labour'
-            : 'Tractor Only',
+        'rentalOption': withLabour ? 'Tractor with Labour' : 'Tractor Only',
 
         'labourIncluded': withLabour,
         'labourAvailable': labourAvailable,
@@ -384,9 +335,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         'bookingDate': bookingDate,
         'bookingTime': bookingTime,
 
-        'bookingDateTime': Timestamp.fromDate(
-          bookingDateTime,
-        ),
+        'bookingDateTime': Timestamp.fromDate(bookingDateTime),
 
         'paymentMethod': paymentResult.method.name,
         'paymentStatus': paymentResult.status.name,
@@ -399,20 +348,14 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
           .doc(bookingId)
           .set(bookingData);
 
-      await _firestore
-          .collection('tractor_listings')
-          .doc(tractorId)
-          .update({
+      await _firestore.collection('tractor_listings').doc(tractorId).update({
         'isAvailable': false,
         'currentBookingId': bookingId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
       try {
-        await _firestore
-            .collection('tractor_listings')
-            .doc(tractorId)
-            .update({
+        await _firestore.collection('tractor_listings').doc(tractorId).update({
           'totalBookings': FieldValue.increment(1),
           'updatedAt': FieldValue.serverTimestamp(),
         });
@@ -424,9 +367,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         isBooking = false;
       });
 
-      await _showSuccessDialog(
-        bookingId,
-      );
+      await _showSuccessDialog(bookingId);
     } catch (e) {
       if (!mounted) return;
 
@@ -434,16 +375,11 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         isBooking = false;
       });
 
-      _showMessage(
-        'Failed to create booking: $e',
-        Colors.red,
-      );
+      _showMessage('Failed to create booking: $e', Colors.red);
     }
   }
 
-  Future<void> _showSuccessDialog(
-    String bookingId,
-  ) async {
+  Future<void> _showSuccessDialog(String bookingId) async {
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -451,18 +387,14 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         return AlertDialog(
           title: const Row(
             children: [
-              Icon(
-                Icons.check_circle,
-                color: Colors.green,
-              ),
+              Icon(Icons.check_circle, color: Colors.green),
               SizedBox(width: 10),
               Text('Booking Successful'),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Your tractor booking has been submitted successfully.',
@@ -470,14 +402,10 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
               const SizedBox(height: 15),
               Text(
                 'Booking ID: $bookingId',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Total Amount: ₹${totalAmount.toStringAsFixed(2)}',
-              ),
+              Text('Total Amount: ₹${totalAmount.toStringAsFixed(2)}'),
               const SizedBox(height: 8),
               const Text(
                 'Status: Pending',
@@ -506,18 +434,12 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
     );
   }
 
-  void _showMessage(
-    String message,
-    Color color,
-  ) {
+  void _showMessage(String message, Color color) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
   }
 
   @override
@@ -533,8 +455,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _tractorInformation(),
 
@@ -542,10 +463,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
             const Text(
               'Booking Schedule',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),
@@ -558,8 +476,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                     title: selectedDate == null
                         ? 'Select Date'
                         : _formatDate(selectedDate!),
-                    onTap:
-                        isBooking ? null : _selectDate,
+                    onTap: isBooking ? null : _selectDate,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -569,8 +486,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                     title: selectedTime == null
                         ? 'Select Time'
                         : selectedTime!.format(context),
-                    onTap:
-                        isBooking ? null : _selectTime,
+                    onTap: isBooking ? null : _selectTime,
                   ),
                 ),
               ],
@@ -580,10 +496,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
             const Text(
               'Rental Type',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),
@@ -593,8 +506,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                 Expanded(
                   child: _durationOption(
                     title: 'Per Hour',
-                    subtitle:
-                        '₹${pricePerHour.toStringAsFixed(0)}/hour',
+                    subtitle: '₹${pricePerHour.toStringAsFixed(0)}/hour',
                     icon: Icons.access_time,
                     value: 'Per Hour',
                   ),
@@ -603,8 +515,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                 Expanded(
                   child: _durationOption(
                     title: 'Per Day',
-                    subtitle:
-                        '₹${pricePerDay.toStringAsFixed(0)}/day',
+                    subtitle: '₹${pricePerDay.toStringAsFixed(0)}/day',
                     icon: Icons.calendar_today,
                     value: 'Per Day',
                   ),
@@ -616,8 +527,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
             TextField(
               controller: durationController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(
+              keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               enabled: !isBooking,
@@ -633,9 +543,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                       ? Icons.access_time
                       : Icons.calendar_today,
                 ),
-                suffixText: durationType == 'Per Hour'
-                    ? 'Hours'
-                    : 'Days',
+                suffixText: durationType == 'Per Hour' ? 'Hours' : 'Days',
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -646,10 +554,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
             const Text(
               'Equipment / Attachment',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),
@@ -676,20 +581,17 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                   );
                 }
 
-                final equipmentList = snapshot.data?.docs
-                    .map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  return {
-                    ...data,
-                    'documentId': doc.id,
-                  };
-                })
-                    .where(
-                      (equipment) =>
-                  equipment['compatibleTractorType'] ==
-                      tractorType,
-                )
-                    .toList() ??
+                final equipmentList =
+                    snapshot.data?.docs
+                        .map((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          return {...data, 'documentId': doc.id};
+                        })
+                        .where(
+                          (equipment) =>
+                              equipment['compatibleTractorType'] == tractorType,
+                        )
+                        .toList() ??
                     [];
 
                 if (equipmentList.isEmpty) {
@@ -706,9 +608,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                         Icon(Icons.info_outline, color: Colors.grey),
                         SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            'No compatible equipment available.',
-                          ),
+                          child: Text('No compatible equipment available.'),
                         ),
                       ],
                     ),
@@ -728,45 +628,38 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                       value: '',
                       child: Text('No Equipment'),
                     ),
-                    ...equipmentList.map(
-                          (equipment) {
-                        return DropdownMenuItem<String>(
-                          value: equipment['documentId'].toString(),
-                          child: Text(
-                            equipment['name']?.toString() ??
-                                'Equipment',
-                          ),
-                        );
-                      },
-                    ),
+                    ...equipmentList.map((equipment) {
+                      return DropdownMenuItem<String>(
+                        value: equipment['documentId'].toString(),
+                        child: Text(
+                          equipment['name']?.toString() ?? 'Equipment',
+                        ),
+                      );
+                    }),
                   ],
                   onChanged: isBooking
                       ? null
                       : (value) {
-                    setState(() {
-                      selectedEquipmentId = value;
+                          setState(() {
+                            selectedEquipmentId = value;
 
-                      if (value == null || value.isEmpty) {
-                        selectedEquipment = null;
-                      } else {
-                        selectedEquipment = equipmentList.firstWhere(
-                              (equipment) =>
-                          equipment['documentId'].toString() ==
-                              value,
-                        );
-                      }
-                    });
-                  },
+                            if (value == null || value.isEmpty) {
+                              selectedEquipment = null;
+                            } else {
+                              selectedEquipment = equipmentList.firstWhere(
+                                (equipment) =>
+                                    equipment['documentId'].toString() == value,
+                              );
+                            }
+                          });
+                        },
                 );
               },
             ),
 
             const Text(
               'Rental Option',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),
@@ -782,8 +675,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
               const SizedBox(height: 10),
               _rentalOption(
                 title: 'Tractor + Labour',
-                subtitle:
-                    'Labour: ₹${labourCharge.toStringAsFixed(0)} / day',
+                subtitle: 'Labour: ₹${labourCharge.toStringAsFixed(0)} / day',
                 icon: Icons.groups,
                 value: true,
               ),
@@ -793,10 +685,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
             const Text(
               'Work Location',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),
@@ -816,10 +705,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
 
             const Text(
               'Payment Method',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),
@@ -854,8 +740,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                 ),
-                onPressed:
-                    isBooking ? null : _bookTractor,
+                onPressed: isBooking ? null : _bookTractor,
                 icon: isBooking
                     ? const SizedBox(
                         width: 22,
@@ -865,13 +750,9 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Icon(
-                        Icons.check_circle,
-                      ),
+                    : const Icon(Icons.check_circle),
                 label: Text(
-                  isBooking
-                      ? 'Processing...'
-                      : 'Confirm Tractor Booking',
+                  isBooking ? 'Processing...' : 'Confirm Tractor Booking',
                 ),
               ),
             ),
@@ -888,15 +769,11 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               tractorName,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text('Type: $tractorType'),
@@ -905,12 +782,8 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
             const SizedBox(height: 6),
             Text('Village: $village'),
             const SizedBox(height: 6),
-            Text(
-              '₹${pricePerHour.toStringAsFixed(0)} / hour',
-            ),
-            Text(
-              '₹${pricePerDay.toStringAsFixed(0)} / day',
-            ),
+            Text('₹${pricePerHour.toStringAsFixed(0)} / hour'),
+            Text('₹${pricePerDay.toStringAsFixed(0)} / day'),
           ],
         ),
       ),
@@ -928,23 +801,14 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(
-            color: Colors.grey.shade300,
-          ),
-          borderRadius:
-              BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: Colors.green,
-            ),
+            Icon(icon, color: Colors.green),
             const SizedBox(height: 6),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-            ),
+            Text(title, textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -971,39 +835,21 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected
-              ? Colors.green.shade50
-              : Colors.white,
+          color: selected ? Colors.green.shade50 : Colors.white,
           border: Border.all(
-            color: selected
-                ? Colors.green
-                : Colors.grey.shade300,
+            color: selected ? Colors.green : Colors.grey.shade300,
             width: selected ? 2 : 1,
           ),
-          borderRadius:
-              BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: selected
-                  ? Colors.green
-                  : Colors.grey,
-            ),
+            Icon(icon, color: selected ? Colors.green : Colors.grey),
             const SizedBox(height: 6),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
             Text(
               subtitle,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ],
         ),
@@ -1030,55 +876,35 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected
-              ? Colors.green.shade50
-              : Colors.white,
+          color: selected ? Colors.green.shade50 : Colors.white,
           border: Border.all(
-            color: selected
-                ? Colors.green
-                : Colors.grey.shade300,
+            color: selected ? Colors.green : Colors.grey.shade300,
             width: selected ? 2 : 1,
           ),
-          borderRadius:
-              BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: selected
-                  ? Colors.green
-                  : Colors.grey,
-            ),
+            Icon(icon, color: selected ? Colors.green : Colors.grey),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
               ),
             ),
             Icon(
-              selected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_off,
-              color: selected
-                  ? Colors.green
-                  : Colors.grey,
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: selected ? Colors.green : Colors.grey,
             ),
           ],
         ),
@@ -1105,44 +931,28 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected
-              ? Colors.green.shade50
-              : Colors.white,
+          color: selected ? Colors.green.shade50 : Colors.white,
           border: Border.all(
-            color: selected
-                ? Colors.green
-                : Colors.grey.shade300,
+            color: selected ? Colors.green : Colors.grey.shade300,
             width: selected ? 2 : 1,
           ),
-          borderRadius:
-              BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: selected
-                  ? Colors.green
-                  : Colors.grey,
-            ),
+            Icon(icon, color: selected ? Colors.green : Colors.grey),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
@@ -1171,33 +981,20 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.green.shade200,
-        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.green.shade200),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Price Summary',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 14),
-          _priceRow(
-            'Tractor',
-            '₹${tractorAmount.toStringAsFixed(2)}',
-          ),
+          _priceRow('Tractor', '₹${tractorAmount.toStringAsFixed(2)}'),
           if (withLabour)
-            _priceRow(
-              'Labour',
-              '₹${totalLabourCharge.toStringAsFixed(2)}',
-            ),
+            _priceRow('Labour', '₹${totalLabourCharge.toStringAsFixed(2)}'),
           if (selectedEquipment != null)
             _priceRow(
               selectedEquipment!['name']?.toString() ?? 'Equipment',
@@ -1214,11 +1011,7 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
     );
   }
 
-  Widget _priceRow(
-    String title,
-    String amount, {
-    bool bold = false,
-  }) {
+  Widget _priceRow(String title, String amount, {bool bold = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -1227,17 +1020,14 @@ class _TractorBookingScreenState extends State<TractorBookingScreen> {
             child: Text(
               title,
               style: TextStyle(
-                fontWeight: bold
-                    ? FontWeight.bold
-                    : FontWeight.normal,
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ),
           Text(
             amount,
             style: TextStyle(
-              color:
-                  bold ? Colors.green : Colors.black,
+              color: bold ? Colors.green : Colors.black,
               fontWeight: FontWeight.bold,
               fontSize: bold ? 18 : 14,
             ),

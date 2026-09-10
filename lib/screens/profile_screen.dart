@@ -16,7 +16,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late int id;
+  late String id;
   late String name;
   late String mobile;
   late String village;

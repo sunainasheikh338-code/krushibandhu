@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:krushibandhu/screens/voice_assistant_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../language/app_translations.dart';
@@ -7,7 +8,6 @@ import '../language/language_provider.dart';
 import 'admin_screen.dart';
 import 'ai_assistant_screen.dart';
 import 'crop_reminder_screen.dart';
-import 'farmer_credit_score_screen.dart';
 import 'farmer_marketplace_screen.dart';
 import 'fertilizer_booking_screen.dart';
 import 'labour_hiring_screen.dart';
@@ -17,10 +17,10 @@ import 'multilanguage_screen.dart';
 import 'my_bookings_screen.dart';
 import 'my_tractor_bookings_screen.dart';
 import 'profile_screen.dart';
+import 'my_marketplace_orders_screen.dart';
 
-// import 'qr_verification_screen.dart';
 import 'tractor_rental_screen.dart';
-import 'voice_assistant_screen.dart';
+import 'my_labour_requests_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -61,7 +61,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['labour_hiring'] ?? 'Labour Hiring',
         'icon': Icons.engineering,
-        'screen': const LabourHiringScreen(),
+        'screen': LabourHiringScreen(user: user),
       },
       {
         'title': lang['crop_reminder'] ?? 'Crop Reminder',
@@ -73,17 +73,15 @@ class HomeScreen extends StatelessWidget {
       //   'icon': Icons.language,
       //   'screen': const MultiLanguageScreen(),
       // },
-      // {
-      //   'title': lang['voice_assistant'] ?? 'Voice Assistant',
-      //   'icon': Icons.mic,
-      //   'screen': VoiceAssistantScreen(
-      //     user: user,
-      //   ),
-      // },
+      {
+        'title': lang['voice_assistant'] ?? 'Voice Assistant',
+        'icon': Icons.mic,
+        'screen': VoiceAssistantScreen(user: user),
+      },
       {
         'title': lang['marketplace'] ?? 'Marketplace',
         'icon': Icons.store,
-        'screen': const FarmerMarketplaceScreen(),
+        'screen': FarmerMarketplaceScreen(user: user),
       },
       // {
       //   'title': lang['credit_score'] ?? 'Credit Score',
@@ -193,7 +191,7 @@ class HomeScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.receipt_long, color: Colors.green),
               title: const Text(
-                'My Bookings',
+                'My Fertilizer Bookings',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               onTap: () {
@@ -221,6 +219,42 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => MyTractorBookingsScreen(user: user),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.engineering, color: Colors.green),
+              title: const Text(
+                'My Labour Requests',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MyLabourRequestsScreen(user: user),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.shopping_bag, color: Colors.green),
+              title: const Text(
+                'My Marketplace Orders',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MyMarketplaceOrdersScreen(user: user),
                   ),
                 );
               },
