@@ -677,155 +677,368 @@ class _FarmerMarketplaceScreenState extends State<FarmerMarketplaceScreen> {
         widget.user?['userId']?.toString() ??
         '';
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-          child: Column(
-            children: [
-              const Icon(Icons.agriculture, size: 70, color: Colors.green),
+    return sellerId.isEmpty
+        ? const Center(
+            child: Text(
+              'Farmer information not found.',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          )
+        : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance
+                .collection('farmer_marketplace_listings')
+                .where('sellerId', isEqualTo: sellerId)
+                .snapshots(),
+            builder: (context, listingSnapshot) {
+              if (listingSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.green),
+                );
+              }
 
-              const SizedBox(height: 15),
-
-              const Text(
-                'Sell Your Farm Products',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                'List your harvested crops or other farm products '
-                'and choose your own selling price.',
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 25),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    _showSellForm();
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('List Product for Sale'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+              if (listingSnapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Unable to load your listings.\n\n'
+                      '${listingSnapshot.error}',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-              ),
+                );
+              }
 
-              const SizedBox(height: 25),
+              final listings = listingSnapshot.data?.docs ?? [];
 
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Orders for My Listings',
-                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
-                ),
-              ),
+              final sortedListings = [...listings];
 
-              const SizedBox(height: 10),
-            ],
+              sortedListings.sort((a, b) {
+                final aTime = a.data()['createdAt'];
+                final bTime = b.data()['createdAt'];
+
+                if (aTime is Timestamp && bTime is Timestamp) {
+                  return bTime.compareTo(aTime);
+                }
+
+                return 0;
+              });
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.agriculture,
+                          size: 70,
+                          color: Colors.green,
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        const Text(
+                          'Sell Your Farm Products',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        const Text(
+                          'List your harvested crops or other farm products '
+                          'and choose your own selling price.',
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: 25),
+
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              _showSellForm();
+                            },
+                            icon: const Icon(Icons.add),
+                            label: const Text('List Product for Sale'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'My Listings',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          if (sortedListings.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.inventory_2_outlined,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      "You haven't listed any "
+                                      "farm products yet.",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ...sortedListings.map(
+                              (doc) => _buildMyMarketplaceListingCard(doc),
+                            ),
+
+                          const SizedBox(height: 25),
+
+                          const Divider(),
+
+                          const SizedBox(height: 20),
+
+                          const Text(
+                            'Orders for My Listings',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          _buildSellerOrders(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+  }
+
+  Widget _buildSellerOrders() {
+    final sellerId =
+        widget.user?['id']?.toString() ??
+        widget.user?['userId']?.toString() ??
+        '';
+
+    if (sellerId.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(
+          child: Text(
+            'Farmer information not found.',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
         ),
+      );
+    }
 
-        Expanded(
-          child: sellerId.isEmpty
-              ? const Center(
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('farmer_marketplace_orders')
+          .where('sellerId', isEqualTo: sellerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.green),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'Unable to load orders.\n\n${snapshot.error}',
+              textAlign: TextAlign.center,
+            ),
+          );
+        }
+
+        final orders = snapshot.data?.docs ?? [];
+
+        if (orders.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.inbox_outlined, color: Colors.grey),
+                SizedBox(width: 12),
+                Expanded(
                   child: Text(
-                    'Farmer information not found.',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    'Orders for your listed products will appear here.',
                   ),
-                )
-              : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance
-                      .collection('farmer_marketplace_orders')
-                      .where('sellerId', isEqualTo: sellerId)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.green),
-                      );
-                    }
-
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Text(
-                            'Unable to load orders.\n\n'
-                            '${snapshot.error}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final orders = snapshot.data?.docs ?? [];
-
-                    if (orders.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.inbox_outlined,
-                                size: 70,
-                                color: Colors.green.shade300,
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'No Orders Yet',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Orders for your listed products '
-                                'will appear here.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    final sortedOrders = [...orders];
-
-                    sortedOrders.sort((a, b) {
-                      final aTime = a.data()['createdAt'];
-                      final bTime = b.data()['createdAt'];
-
-                      if (aTime is Timestamp && bTime is Timestamp) {
-                        return bTime.compareTo(aTime);
-                      }
-
-                      return 0;
-                    });
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                      itemCount: sortedOrders.length,
-                      itemBuilder: (context, index) {
-                        return _buildSellerOrderCard(sortedOrders[index]);
-                      },
-                    );
-                  },
                 ),
+              ],
+            ),
+          );
+        }
+
+        final sortedOrders = [...orders];
+
+        sortedOrders.sort((a, b) {
+          final aTime = a.data()['createdAt'];
+          final bTime = b.data()['createdAt'];
+
+          if (aTime is Timestamp && bTime is Timestamp) {
+            return bTime.compareTo(aTime);
+          }
+
+          return 0;
+        });
+
+        return Column(
+          children: sortedOrders
+              .map((doc) => _buildSellerOrderCard(doc))
+              .toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildMyMarketplaceListingCard(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+
+    final productName = (data['productName'] ?? 'Product').toString();
+
+    final category = (data['category'] ?? 'Other').toString();
+
+    final availableQuantity =
+        (data['availableQuantity'] as num?)?.toDouble() ?? 0;
+
+    final unit = (data['unit'] ?? 'Kg').toString();
+
+    final pricePerUnit = (data['pricePerUnit'] as num?)?.toDouble() ?? 0;
+
+    final status = (data['status'] ?? 'Available').toString();
+
+    final isSold = status.toLowerCase().trim() == 'sold';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.agriculture, color: Colors.green),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        productName,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      Text(
+                        category,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSold ? Colors.red.shade50 : Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isSold ? 'Sold' : 'Available',
+                    style: TextStyle(
+                      color: isSold ? Colors.red : Colors.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const Divider(height: 25),
+
+            _marketplaceOrderInfoRow(
+              Icons.scale_outlined,
+              'Available',
+              '${_formatNumber(availableQuantity)} $unit',
+            ),
+
+            _marketplaceOrderInfoRow(
+              Icons.currency_rupee,
+              'Price / $unit',
+              '₹${_formatNumber(pricePerUnit)}',
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
