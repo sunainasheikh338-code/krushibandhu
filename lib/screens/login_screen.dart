@@ -8,6 +8,7 @@ import '../language/language_provider.dart';
 import 'admin_screen.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
+import '../services/local_notification_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -380,6 +381,22 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
 
             const SizedBox(height: 20),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await LocalNotificationService.showNotification(
+                    id: 999,
+                    title: 'KrushiBandhu Test 🌱',
+                    message: 'Local notification is working!',
+                  );
+                },
+                child: const Text('Test Notification'),
+              ),
+            ),
 
             // ==================================================
             // SIGN UP
