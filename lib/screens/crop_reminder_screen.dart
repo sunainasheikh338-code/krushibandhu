@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/local_notification_service.dart';
 
 class CropReminderScreen extends StatefulWidget {
   const CropReminderScreen({super.key});
@@ -326,7 +327,8 @@ class _AddCropReminderScreenState extends State<AddCropReminderScreen> {
     if (cropController.text.trim().isEmpty ||
         activityController.text.trim().isEmpty ||
         dateController.text.trim().isEmpty ||
-        timeController.text.trim().isEmpty) {
+        timeController.text.trim().isEmpty ||
+        selectedReminderDateTime == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
@@ -350,6 +352,13 @@ class _AddCropReminderScreenState extends State<AddCropReminderScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'notificationSent': false,
       });
+
+      await LocalNotificationService.scheduleNotification(
+        id: reminderRef.id.hashCode,
+        title: '${cropController.text.trim()} Reminder 🌱',
+        message: 'Time for ${activityController.text.trim()}',
+        scheduledDate: selectedReminderDateTime!,
+      );
 
       if (!mounted) return;
 
