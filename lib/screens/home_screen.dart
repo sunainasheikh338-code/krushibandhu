@@ -21,6 +21,7 @@ import 'my_marketplace_orders_screen.dart';
 
 import 'tractor_rental_screen.dart';
 import 'my_labour_requests_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -133,8 +134,21 @@ class HomeScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.green,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            tooltip: 'Notifications',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => NotificationsScreen(user: user),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
