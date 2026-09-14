@@ -3,7 +3,9 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../services/ai_service.dart';
 
 class AIAssistantScreen extends StatefulWidget {
-  const AIAssistantScreen({super.key});
+  final Map<String, dynamic> user;
+
+  const AIAssistantScreen({super.key, required this.user});
 
   @override
   State<AIAssistantScreen> createState() => _AIAssistantScreenState();
@@ -29,8 +31,11 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     });
 
     try {
-      final reply = await AIService.ask(question);
-
+      final reply = await AIService.ask(
+        question,
+        userId:
+            widget.user['id']?.toString() ?? widget.user['mobile']?.toString(),
+      );
       if (!mounted) return;
 
       setState(() {

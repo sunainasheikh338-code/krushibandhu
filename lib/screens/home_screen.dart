@@ -190,7 +190,9 @@ class HomeScreen extends StatelessWidget {
 
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AIAssistantScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => AIAssistantScreen(user: user),
+                  ),
                 );
               },
             ),

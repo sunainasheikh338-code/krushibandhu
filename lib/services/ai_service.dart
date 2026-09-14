@@ -43,7 +43,7 @@ class AIService {
            prices, availability, names, quantities, or other values.
     ''';
 
-  static Future<String> ask(String question) async {
+  static Future<String> ask(String question, {String? userId}) async {
     try {
       if (_groqApiKey.isEmpty) {
         return 'AI service is not configured.';
@@ -61,6 +61,10 @@ class AIService {
         databaseContext = await _getEquipmentContext();
       } else if (_isLabourQuestion(lowerQuestion)) {
         databaseContext = await _getLabourContext();
+      } else if (_isMarketplaceQuestion(lowerQuestion)) {
+        databaseContext = await _getMarketplaceContext();
+      } else if (_isMyMarketplaceOrderQuestion(lowerQuestion)) {
+        databaseContext = await _getMyMarketplaceOrdersContext(userId);
       } else if (_isMarketplaceQuestion(lowerQuestion)) {
         databaseContext = await _getMarketplaceContext();
       }
@@ -141,7 +145,7 @@ class AIService {
     final snapshot = await _firestore.collection('fertilizers').get();
 
     if (snapshot.docs.isEmpty) {
-      return 'No fertilizer data is currently available in Firestore.';
+      return 'No fertilizer data is currently available in System.';
     }
 
     final buffer = StringBuffer();
@@ -184,7 +188,7 @@ class AIService {
     final snapshot = await _firestore.collection('tractor_listings').get();
 
     if (snapshot.docs.isEmpty) {
-      return 'No tractor data is currently available in Firestore.';
+      return 'No tractor data is currently available in System.';
     }
 
     final buffer = StringBuffer();
@@ -250,7 +254,7 @@ class AIService {
     final snapshot = await _firestore.collection('equipment').get();
 
     if (snapshot.docs.isEmpty) {
-      return 'No equipment data is currently available in Firestore.';
+      return 'No equipment data is currently available in System.';
     }
 
     final buffer = StringBuffer();
@@ -381,6 +385,59 @@ class AIService {
 
       buffer.writeln(
         '- ${data.entries.map((entry) => '${entry.key}: ${entry.value}').join(', ')}',
+      );
+    }
+
+    return buffer.toString();
+  }
+
+  static bool _isMyMarketplaceOrderQuestion(String question) {
+    const keywords = [
+      'my marketplace order',
+      'my marketplace orders',
+      'my orders',
+      'my order',
+      'orders i placed',
+      'orders i bought',
+      'what did i order',
+      'what have i ordered',
+      'my purchases',
+    ];
+
+    return keywords.any(question.contains);
+  }
+
+  static Future<String> _getMyMarketplaceOrdersContext(String? userId) async {
+    if (userId == null || userId.isEmpty) {
+      return 'The logged-in farmer ID is not available.';
+    }
+
+    final snapshot = await _firestore
+        .collection('farmer_marketplace_orders')
+        .where('buyerId', isEqualTo: userId)
+        .get();
+
+    if (snapshot.docs.isEmpty) {
+      return 'The logged-in farmer has no farmer marketplace orders.';
+    }
+
+    final buffer = StringBuffer();
+
+    buffer.writeln(
+      'Farmer Marketplace orders belonging to the logged-in farmer:',
+    );
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+
+      buffer.writeln(
+        '- Product: ${data['productName'] ?? 'Unknown'}, '
+        'Quantity: ${data['quantity'] ?? 'Unknown'} '
+        '${data['unit'] ?? ''}, '
+        'Price per unit: ₹${data['pricePerUnit'] ?? 'Unknown'}, '
+        'Total amount: ₹${data['totalAmount'] ?? 'Unknown'}, '
+        'Seller: ${data['sellerName'] ?? 'Unknown'}, '
+        'Status: ${data['status'] ?? 'Unknown'}',
       );
     }
 
