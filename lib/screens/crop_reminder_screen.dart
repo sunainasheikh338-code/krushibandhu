@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/local_notification_service.dart';
+import '../services/notification_service.dart';
 
 class CropReminderScreen extends StatefulWidget {
-  const CropReminderScreen({super.key});
+  final Map<String, dynamic> user;
+
+  const CropReminderScreen({super.key, required this.user});
 
   @override
   State<CropReminderScreen> createState() => _CropReminderScreenState();
@@ -22,7 +25,9 @@ class _CropReminderScreenState extends State<CropReminderScreen> {
   void _openAddReminder() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AddCropReminderScreen()),
+      MaterialPageRoute(
+        builder: (_) => AddCropReminderScreen(user: widget.user),
+      ),
     );
   }
 
@@ -302,7 +307,9 @@ class _CropReminderScreenState extends State<CropReminderScreen> {
 }
 
 class AddCropReminderScreen extends StatefulWidget {
-  const AddCropReminderScreen({super.key});
+  final Map<String, dynamic> user;
+
+  const AddCropReminderScreen({super.key, required this.user});
 
   @override
   State<AddCropReminderScreen> createState() => _AddCropReminderScreenState();
@@ -342,8 +349,16 @@ class _AddCropReminderScreenState extends State<AddCropReminderScreen> {
     try {
       final reminderRef = _firestore.collection('crop_reminders').doc();
 
+      final userId =
+          widget.user['id']?.toString() ?? widget.user['mobile']?.toString();
+
+      if (userId == null || userId.isEmpty) {
+        throw Exception('User ID not found');
+      }
+
       await reminderRef.set({
         'reminderId': reminderRef.id,
+        'userId': userId,
         'cropName': cropController.text.trim(),
         'activity': activityController.text.trim(),
         'reminderDate': dateController.text.trim(),
@@ -352,6 +367,14 @@ class _AddCropReminderScreenState extends State<AddCropReminderScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'notificationSent': false,
       });
+
+      await NotificationService.createNotification(
+        userId: userId,
+        title: '${cropController.text.trim()} Reminder 🌱',
+        message: 'Time for ${activityController.text.trim()}',
+        type: 'crop_reminder',
+        showAt: selectedReminderDateTime!,
+      );
 
       await LocalNotificationService.scheduleNotification(
         id: reminderRef.id.hashCode,

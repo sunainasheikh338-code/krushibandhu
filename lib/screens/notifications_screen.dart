@@ -9,7 +9,7 @@ class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key, required this.user});
 
   String _getUserId() {
-    return user['id']?.toString() ?? user['userId']?.toString() ?? '';
+    return user['id']?.toString() ?? user['mobile']?.toString() ?? '';
   }
 
   String _formatDate(Timestamp? timestamp) {
@@ -56,7 +56,21 @@ class NotificationsScreen extends StatelessWidget {
 
                 final documents = snapshot.data?.docs ?? [];
 
-                if (documents.isEmpty) {
+                final now = DateTime.now();
+                final visibleDocuments = documents.where((document) {
+                  final data = document.data();
+                  final showAt = data['showAt'];
+
+                  if (showAt == null) {
+                    return true;
+                  }
+
+                  final showAtDate = (showAt as Timestamp).toDate();
+
+                  return !showAtDate.isAfter(now);
+                }).toList();
+
+                if (visibleDocuments.isEmpty) {
                   return const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -79,7 +93,7 @@ class NotificationsScreen extends StatelessWidget {
                   );
                 }
 
-                final sortedDocuments = [...documents];
+                final sortedDocuments = [...visibleDocuments];
 
                 sortedDocuments.sort((a, b) {
                   final aTime = a.data()['createdAt'] as Timestamp?;

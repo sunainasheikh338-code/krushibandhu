@@ -59,12 +59,12 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
             );
           }
           // QR VERIFICATION
-          else if (command.contains("verification") || command.contains("qr")) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const QRVerificationScreen()),
-            );
-          }
+          // else if (command.contains("verification") || command.contains("qr")) {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (_) => const QRVerificationScreen()),
+          //   );
+          // }
           // LEFTOVER FERTILIZER
           else if (command.contains("leftover")) {
             Navigator.push(
@@ -79,14 +79,18 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
           else if (command.contains("labour") || command.contains("labor")) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const LabourHiringScreen()),
+              MaterialPageRoute(
+                builder: (_) => LabourHiringScreen(user: widget.user),
+              ),
             );
           }
           // CROP REMINDER
           else if (command.contains("reminder")) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const CropReminderScreen()),
+              MaterialPageRoute(
+                builder: (_) => CropReminderScreen(user: widget.user),
+              ),
             );
           }
           // LANGUAGE
@@ -101,19 +105,19 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const FarmerMarketplaceScreen(),
+                builder: (_) => FarmerMarketplaceScreen(user: widget.user),
               ),
             );
           }
           // CREDIT SCORE
-          else if (command.contains("credit")) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const FarmerCreditScoreScreen(),
-              ),
-            );
-          }
+          // else if (command.contains("credit")) {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (_) => FarmerCreditScoreScreen(),
+          //     ),
+          //   );
+          // }
         },
       );
     } else {

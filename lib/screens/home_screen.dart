@@ -67,7 +67,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['crop_reminder'] ?? 'Crop Reminder',
         'icon': Icons.notifications_active,
-        'screen': const CropReminderScreen(),
+        'screen': CropReminderScreen(user: user),
       },
       // {
       //   'title': lang['language'] ?? 'Language',

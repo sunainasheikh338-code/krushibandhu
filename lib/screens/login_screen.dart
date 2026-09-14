@@ -384,20 +384,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 12),
 
-            // SizedBox(
-            //   width: double.infinity,
-            //   child: ElevatedButton(
-            //     onPressed: () async {
-            //       await LocalNotificationService.showNotification(
-            //         id: 999,
-            //         title: 'KrushiBandhu Test 🌱',
-            //         message: 'Local notification is working!',
-            //       );
-            //     },
-            //     child: const Text('Test Notification'),
-            //   ),
-            // ),
-
             // ==================================================
             // SIGN UP
             // ==================================================

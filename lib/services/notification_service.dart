@@ -8,6 +8,7 @@ class NotificationService {
     required String title,
     required String message,
     required String type,
+    required DateTime showAt,
   }) async {
     final notificationRef = _firestore.collection('notifications').doc();
 
@@ -18,6 +19,8 @@ class NotificationService {
       'message': message,
       'type': type,
       'isRead': false,
+
+      'showAt': Timestamp.fromDate(showAt),
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
