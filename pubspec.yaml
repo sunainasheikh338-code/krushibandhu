@@ -18,7 +18,7 @@ dependencies:
 
   # Firebase
   firebase_core: ^4.13.0
-  firebase_auth: ^6.5.7
+  firebase_auth: 6.6.1
   cloud_firestore: ^6.8.0
 
   # Voice Assistant
@@ -51,6 +51,9 @@ dependencies:
   # Date Formatting
   intl: ^0.20.2
   sqflite_common_ffi_web: ^1.1.2
+  firebase_messaging: ^16.6.0
+  flutter_local_notifications: ^22.3.0
+  timezone: ^0.11.1
 
 dev_dependencies:
   flutter_test:

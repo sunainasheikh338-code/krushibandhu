@@ -21,6 +21,8 @@ import 'my_marketplace_orders_screen.dart';
 
 import 'tractor_rental_screen.dart';
 import 'my_labour_requests_screen.dart';
+import 'notifications_screen.dart';
+import '../services/local_notification_service.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -29,6 +31,13 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    LocalNotificationService.setNotificationTapHandler(() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => NotificationsScreen(user: user)),
+      );
+    });
+
     final lang =
         AppTranslations.translations[Provider.of<LanguageProvider>(
           context,
@@ -66,7 +75,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': lang['crop_reminder'] ?? 'Crop Reminder',
         'icon': Icons.notifications_active,
-        'screen': const CropReminderScreen(),
+        'screen': CropReminderScreen(user: user),
       },
       // {
       //   'title': lang['language'] ?? 'Language',
@@ -133,8 +142,21 @@ class HomeScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.green,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            tooltip: 'Notifications',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => NotificationsScreen(user: user),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
