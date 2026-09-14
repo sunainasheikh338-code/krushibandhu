@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:krushibandhu/screens/ai_assistant_screen.dart';
 import 'package:krushibandhu/screens/voice_assistant_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -6,7 +7,6 @@ import '../language/app_translations.dart';
 import '../language/language_provider.dart';
 
 import 'admin_screen.dart';
-import 'ai_assistant_screen.dart';
 import 'crop_reminder_screen.dart';
 import 'farmer_marketplace_screen.dart';
 import 'fertilizer_booking_screen.dart';
