@@ -23,10 +23,15 @@ Future<void> main() async {
   await LocalNotificationService.initialize(
     onNotificationTap: () {
       debugPrint('🔔 Notification tap received');
+
+      // navigatorKey.currentState?.push(
+      //   MaterialPageRoute(builder: (context) => const LoginScreen()),
+      // );
     },
   );
 
-  // if (!kIsWeb) {
+
+
   //   const AndroidInitializationSettings androidSettings =
   //       AndroidInitializationSettings('@mipmap/ic_launcher');
   //

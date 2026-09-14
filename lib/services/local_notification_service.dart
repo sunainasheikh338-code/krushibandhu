@@ -7,6 +7,16 @@ class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
+  static VoidCallback? _notificationTapHandler;
+
+  static void setNotificationTapHandler(VoidCallback handler) {
+    _notificationTapHandler = handler;
+  }
+
+  static void clearNotificationTapHandler() {
+    _notificationTapHandler = null;
+  }
+
   static Future<void> initialize({
     required void Function() onNotificationTap,
   }) async {
@@ -22,9 +32,10 @@ class LocalNotificationService {
     await _notifications.initialize(
       settings: initializationSettings,
       onDidReceiveNotificationResponse: (response) {
-        debugPrint('🔔 Android notification tapped');
 
         onNotificationTap();
+
+        _notificationTapHandler?.call();
       },
     );
 
@@ -70,15 +81,7 @@ class LocalNotificationService {
     required String message,
     required DateTime scheduledDate,
   }) async {
-    debugPrint('🔔 Scheduling notification...');
-    debugPrint('🆔 ID: $id');
-    debugPrint('📅 Scheduled DateTime: $scheduledDate');
-    debugPrint('🕐 Current DateTime: ${DateTime.now()}');
-
     final scheduledTime = tz.TZDateTime.from(scheduledDate, tz.local);
-
-    debugPrint('🌍 TZ Scheduled Time: $scheduledTime');
-    debugPrint('🌍 TZ Current Time: ${tz.TZDateTime.now(tz.local)}');
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
@@ -101,50 +104,5 @@ class LocalNotificationService {
       notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
-
-    debugPrint('✅ Android accepted scheduled notification!');
-
-    final pendingNotifications = await _notifications
-        .pendingNotificationRequests();
-
-    debugPrint('📋 PENDING NOTIFICATIONS: ${pendingNotifications.length}');
-
-    for (final notification in pendingNotifications) {
-      debugPrint(
-        '📋 Pending ID: ${notification.id}, '
-        'Title: ${notification.title}',
-      );
-    }
   }
-
-  // static Future<void> scheduleNotification({
-  //   required int id,
-  //   required String title,
-  //   required String message,
-  //   required DateTime scheduledDate,
-  // }) async {
-  //   final scheduledTime = tz.TZDateTime.from(scheduledDate, tz.local);
-  //
-  //   const AndroidNotificationDetails androidDetails =
-  //       AndroidNotificationDetails(
-  //         'krushibandhu_reminders',
-  //         'KrushiBandhu Reminders',
-  //         channelDescription: 'Crop reminder notifications',
-  //         importance: Importance.high,
-  //         priority: Priority.high,
-  //       );
-  //
-  //   const NotificationDetails details = NotificationDetails(
-  //     android: androidDetails,
-  //   );
-  //
-  //   await _notifications.zonedSchedule(
-  //     id: id,
-  //     title: title,
-  //     body: message,
-  //     scheduledDate: scheduledTime,
-  //     notificationDetails: details,
-  //     androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-  //   );
-  // }
 }

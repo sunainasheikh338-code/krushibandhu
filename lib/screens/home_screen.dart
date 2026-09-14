@@ -22,6 +22,7 @@ import 'my_marketplace_orders_screen.dart';
 import 'tractor_rental_screen.dart';
 import 'my_labour_requests_screen.dart';
 import 'notifications_screen.dart';
+import '../services/local_notification_service.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -30,6 +31,13 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    LocalNotificationService.setNotificationTapHandler(() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => NotificationsScreen(user: user)),
+      );
+    });
+
     final lang =
         AppTranslations.translations[Provider.of<LanguageProvider>(
           context,
