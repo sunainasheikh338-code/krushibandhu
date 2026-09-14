@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../services/ai_service.dart';
 
 class AIAssistantScreen extends StatefulWidget {
@@ -114,10 +115,42 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                                 : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            msg["text"] ?? "",
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                          child: msg["sender"] == "ai"
+                              ? MarkdownBody(
+                                  data: msg["text"] ?? "",
+                                  selectable: true,
+                                  styleSheet: MarkdownStyleSheet(
+                                    p: const TextStyle(
+                                      fontSize: 16,
+                                      height: 1.5,
+                                    ),
+                                    strong: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    h1: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    h2: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    h3: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    listBullet: const TextStyle(fontSize: 16),
+                                    tableHead: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                    tableBody: const TextStyle(fontSize: 14),
+                                  ),
+                                )
+                              : Text(
+                                  msg["text"] ?? "",
+                                  style: const TextStyle(fontSize: 16),
+                                ),
                         ),
                       );
                     },
