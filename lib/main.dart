@@ -9,8 +9,14 @@ import 'firebase_options.dart';
 import 'language/language_provider.dart';
 import 'screens/login_screen.dart';
 
+import 'services/local_notification_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await LocalNotificationService.initialize(onNotificationTap: () {});
 
   // Initialize SQLite for Web
   if (kIsWeb) {
@@ -18,9 +24,7 @@ Future<void> main() async {
   }
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
     ChangeNotifierProvider(
@@ -38,6 +42,7 @@ class KrushiBandhu extends StatelessWidget {
     final language = Provider.of<LanguageProvider>(context);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: "KrushiBandhu",
       locale: language.locale,
