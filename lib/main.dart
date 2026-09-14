@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'firebase_options.dart';
 import 'language/language_provider.dart';
@@ -12,36 +11,12 @@ import 'screens/login_screen.dart';
 
 import 'services/local_notification_service.dart';
 
-// final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-//     FlutterLocalNotificationsPlugin();
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await LocalNotificationService.initialize(
-    onNotificationTap: () {
-      debugPrint('🔔 Notification tap received');
-
-      // navigatorKey.currentState?.push(
-      //   MaterialPageRoute(builder: (context) => const LoginScreen()),
-      // );
-    },
-  );
-
-
-
-  //   const AndroidInitializationSettings androidSettings =
-  //       AndroidInitializationSettings('@mipmap/ic_launcher');
-  //
-  //   const InitializationSettings initializationSettings =
-  //       InitializationSettings(android: androidSettings);
-  //
-  //   await flutterLocalNotificationsPlugin.initialize(
-  //     settings: initializationSettings,
-  //   );
-  // }
+  await LocalNotificationService.initialize(onNotificationTap: () {});
 
   // Initialize SQLite for Web
   if (kIsWeb) {
