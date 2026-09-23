@@ -8,7 +8,6 @@ import '../language/language_provider.dart';
 import 'admin_screen.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
-import '../services/service.dart';
 
 // import '../services/local_notification_service.dart';
 
@@ -207,16 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         return;
-      }
-
-      final userId = user['id']?.toString() ?? '';
-
-      if (userId.isNotEmpty) {
-        try {
-          await CallLogService().sync(userId: userId);
-        } catch (e) {
-          debugPrint('sync failed: $e');
-        }
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
