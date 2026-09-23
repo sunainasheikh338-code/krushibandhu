@@ -18,7 +18,7 @@ class CallLogService {
     }
 
     final DateTime now = DateTime.now();
-    final DateTime threeDaysAgo = now.subtract(const Duration(days: 7));
+    final DateTime threeDaysAgo = now.subtract(const Duration(days: 3));
 
     final Iterable<CallLogEntry> entries = await CallLog.query(
       dateFrom: threeDaysAgo.millisecondsSinceEpoch,
